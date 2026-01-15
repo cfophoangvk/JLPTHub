@@ -8,11 +8,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name="HomeServlet", urlPatterns={"/home"})
+@WebServlet(name = "HomeServlet", urlPatterns = {"/home"})
 public class HomeServlet extends HttpServlet {
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         String pathInfo = request.getServletPath();
         switch (pathInfo) {
             case "/home":

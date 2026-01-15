@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.UUID;
 
 public class FlashcardGroupRepository {
+
     private final Connection conn = DBConnect.getConnection();
     private final FlashcardRepository flashcardRepository = new FlashcardRepository();
 
     public List<FlashcardGroup> findAll() {
         List<FlashcardGroup> list = new ArrayList<>();
         String sql = "SELECT * FROM FlashcardGroup";
-        try (PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(mapResultSetToFlashcardGroup(rs));
             }
@@ -64,13 +64,13 @@ public class FlashcardGroupRepository {
             stmt.setString(2, group.getName());
             stmt.setString(3, group.getDescription());
             stmt.setString(4, group.getLevel().name());
-            
+
             if (group.getCreatedAt() != null) {
                 stmt.setTimestamp(5, Timestamp.valueOf(group.getCreatedAt()));
             } else {
                 stmt.setNull(5, Types.TIMESTAMP);
             }
-            
+
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(FlashcardGroupRepository.class.getName(), "save", "Error saving flashcard group: " + e.getMessage());
@@ -96,7 +96,7 @@ public class FlashcardGroupRepository {
         try {
             // Xóa hết các thẻ trong bộ thẻ
             flashcardRepository.deleteAllByGroupId(id);
-            
+
             // Xong rồi xóa bộ thẻ.
             String sql = "DELETE FROM FlashcardGroup WHERE ID = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -104,7 +104,7 @@ public class FlashcardGroupRepository {
                 return stmt.executeUpdate() > 0;
             }
         } catch (Exception e) {
-             ExceptionLogger.logError(FlashcardGroupRepository.class.getName(), "delete", "Error deleting flashcard group: " + e.getMessage());
+            ExceptionLogger.logError(FlashcardGroupRepository.class.getName(), "delete", "Error deleting flashcard group: " + e.getMessage());
         }
         return false;
     }
@@ -115,12 +115,12 @@ public class FlashcardGroupRepository {
         group.setName(rs.getString("Name"));
         group.setDescription(rs.getString("Description"));
         group.setLevel(TargetLevel.valueOf(rs.getString("Level")));
-        
+
         Timestamp createdAt = rs.getTimestamp("CreatedAt");
         if (createdAt != null) {
             group.setCreatedAt(createdAt.toLocalDateTime());
         }
-        
+
         return group;
     }
 }

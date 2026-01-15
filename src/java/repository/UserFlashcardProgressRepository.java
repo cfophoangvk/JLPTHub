@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class UserFlashcardProgressRepository {
+
     private final Connection conn = DBConnect.getConnection();
 
     public List<UserFlashcardProgress> findByUserAndGroup(UUID userId, UUID groupId) {
@@ -27,8 +28,8 @@ public class UserFlashcardProgressRepository {
                 list.add(mapResultSetToProgress(rs));
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "findByUserAndGroup", 
-                "Error finding progress by user and group: " + e.getMessage());
+            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "findByUserAndGroup",
+                    "Error finding progress by user and group: " + e.getMessage());
         }
         return list;
     }
@@ -48,8 +49,8 @@ public class UserFlashcardProgressRepository {
                 list.add(mapResultSetToProgress(rs));
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "findFavoritesByUserAndGroup", 
-                "Error finding favorites by user and group: " + e.getMessage());
+            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "findFavoritesByUserAndGroup",
+                    "Error finding favorites by user and group: " + e.getMessage());
         }
         return list;
     }
@@ -64,8 +65,8 @@ public class UserFlashcardProgressRepository {
                 return mapResultSetToProgress(rs);
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "findByUserAndFlashcard", 
-                "Error finding progress by user and flashcard: " + e.getMessage());
+            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "findByUserAndFlashcard",
+                    "Error finding progress by user and flashcard: " + e.getMessage());
         }
         return null;
     }
@@ -77,27 +78,25 @@ public class UserFlashcardProgressRepository {
             stmt.setString(2, progress.getFlashcardId().toString());
             stmt.setBoolean(3, progress.isFavorite());
             stmt.setString(4, progress.getStatus() != null ? progress.getStatus() : "New");
-            
+
             if (progress.getLastReviewedDate() != null) {
                 stmt.setTimestamp(5, Timestamp.valueOf(progress.getLastReviewedDate()));
             } else {
                 stmt.setNull(5, Types.TIMESTAMP);
             }
-            
+
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "save", 
-                "Error saving progress: " + e.getMessage());
+            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "save",
+                    "Error saving progress: " + e.getMessage());
         }
         return false;
     }
 
     public boolean toggleFavorite(UUID userId, UUID flashcardId) {
-        // First check if record exists
         UserFlashcardProgress existing = findByUserAndFlashcard(userId, flashcardId);
-        
+
         if (existing == null) {
-            // Create new record with favorite set to true
             UserFlashcardProgress newProgress = new UserFlashcardProgress();
             newProgress.setUserId(userId);
             newProgress.setFlashcardId(flashcardId);
@@ -105,15 +104,14 @@ public class UserFlashcardProgressRepository {
             newProgress.setStatus("New");
             return save(newProgress);
         } else {
-            // Toggle existing favorite status
             String sql = "UPDATE UserFlashcardProgress SET IsFavorite = ~IsFavorite WHERE UserId = ? AND FlashcardId = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, userId.toString());
                 stmt.setString(2, flashcardId.toString());
                 return stmt.executeUpdate() > 0;
             } catch (SQLException e) {
-                ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "toggleFavorite", 
-                    "Error toggling favorite: " + e.getMessage());
+                ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "toggleFavorite",
+                        "Error toggling favorite: " + e.getMessage());
             }
         }
         return false;
@@ -126,9 +124,8 @@ public class UserFlashcardProgressRepository {
 
     public boolean updateReviewStatus(UUID userId, UUID flashcardId, String status) {
         UserFlashcardProgress existing = findByUserAndFlashcard(userId, flashcardId);
-        
+
         if (existing == null) {
-            // Create new record
             UserFlashcardProgress newProgress = new UserFlashcardProgress();
             newProgress.setUserId(userId);
             newProgress.setFlashcardId(flashcardId);
@@ -144,8 +141,8 @@ public class UserFlashcardProgressRepository {
                 stmt.setString(3, flashcardId.toString());
                 return stmt.executeUpdate() > 0;
             } catch (SQLException e) {
-                ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "updateReviewStatus", 
-                    "Error updating review status: " + e.getMessage());
+                ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "updateReviewStatus",
+                        "Error updating review status: " + e.getMessage());
             }
         }
         return false;
@@ -157,12 +154,12 @@ public class UserFlashcardProgressRepository {
         progress.setFlashcardId(UUID.fromString(rs.getString("FlashcardId")));
         progress.setFavorite(rs.getBoolean("IsFavorite"));
         progress.setStatus(rs.getString("Status"));
-        
+
         Timestamp lastReviewed = rs.getTimestamp("LastReviewedDate");
         if (lastReviewed != null) {
             progress.setLastReviewedDate(lastReviewed.toLocalDateTime());
         }
-        
+
         return progress;
     }
 }

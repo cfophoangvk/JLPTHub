@@ -50,7 +50,6 @@ public class GoogleOAuthUtil {
     //Lấy token từ code sau khi đăng nhập Google
     public static String exchangeCodeForToken(String code) {
         try {
-            System.out.println("code: " + code);
             URL url = new URL(GOOGLE_TOKEN_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");

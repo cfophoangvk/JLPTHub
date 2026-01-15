@@ -140,7 +140,7 @@
         </style>
         <script>
             // Open a dialog by ID
-            function openDialog(id) {
+            function openDialog (id) {
                 const dialog = document.getElementById(id);
                 if (dialog) {
                     dialog.showModal();
@@ -149,7 +149,7 @@
             }
 
             // Close a dialog by ID (or 'this')
-            function closeDialog(element) {
+            function closeDialog (element) {
                 const dialog = element.closest('dialog');
                 if (dialog) {
                     dialog.close();
@@ -157,7 +157,7 @@
                 }
             }
 
-            function validateInput(id, validationCallback) {
+            function validateInput (id, validationCallback) {
                 const inputEl = document.getElementById(id);
                 const errorEl = document.getElementById('error-' + id);
 
@@ -176,11 +176,11 @@
                 }
             }
 
-            function submitForm(id) {
+            function submitForm (id) {
                 document.getElementById(id).submit();
             }
 
-            function toggleSelect(triggerId) {
+            function toggleSelect (triggerId) {
                 const content = document.getElementById(triggerId + '-content');
                 const trigger = document.getElementById(triggerId + "-trigger");
 
@@ -197,7 +197,7 @@
                 }
             }
 
-            function selectOption(triggerId, value, label) {
+            function selectOption (triggerId, value, label) {
                 const input = document.getElementById(triggerId);
                 input.value = value;
 
@@ -229,7 +229,7 @@
                 }
             });
 
-            function scrollCarousel(id, next) {
+            function scrollCarousel (id, next) {
                 const container = document.getElementById(id);
                 if (container) {
                     const scrollAmount = container.clientWidth;
@@ -240,14 +240,14 @@
                 }
             }
 
-            function flipCard(id) {
+            function flipCard (id) {
                 const card = document.getElementById(id);
                 if (card) {
                     card.classList.toggle('flipped');
                 }
             }
 
-            function getCookie(name) {
+            function getCookie (name) {
                 const nameEQ = name + "=";
                 const ca = document.cookie.split(';');
                 for (let i = 0; i < ca.length; i++) {
@@ -276,13 +276,13 @@
                 updateSidebarUI();
             });
 
-            function toggleSidebar() {
+            function toggleSidebar () {
                 isSidebarExpanded = !isSidebarExpanded;
                 document.cookie = "isSidebarExpanded=" + isSidebarExpanded;
                 updateSidebarUI();
             }
 
-            function updateSidebarUI() {
+            function updateSidebarUI () {
                 const sidebarLogo = document.getElementById("sidebar-logo");
                 const sidebarSection = document.getElementById("sidebar-section");
                 const sidebarItems = document.querySelectorAll(".sidebar-item");
@@ -384,6 +384,14 @@
                                 <i class="fa-solid fa-layer-group text-rose-500"></i>
                                 <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
                                     Quản lý bộ thẻ
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="${pageContext.request.contextPath}/admin/lesson-groups" class="sidebar-link flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
+                                <i class="fa-solid fa-graduation-cap text-rose-500"></i>
+                                <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
+                                    Quản lý bài học
                                 </span>
                             </a>
                         </li>

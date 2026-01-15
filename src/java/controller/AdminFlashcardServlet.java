@@ -27,9 +27,10 @@ import java.util.UUID;
     "/admin/flashcards/delete"
 })
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2MB
-                 maxFileSize = 1024 * 1024 * 10,      // 10MB
-                 maxRequestSize = 1024 * 1024 * 50)   // 50MB
+        maxFileSize = 1024 * 1024 * 10, // 10MB
+        maxRequestSize = 1024 * 1024 * 50)   // 50MB
 public class AdminFlashcardServlet extends HttpServlet {
+
     private final FlashcardRepository flashcardRepository = new FlashcardRepository();
     private final FlashcardGroupRepository groupRepository = new FlashcardGroupRepository();
     private final CloudinaryService cloudinaryService = new CloudinaryService();
@@ -40,7 +41,7 @@ public class AdminFlashcardServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
             return;
         }
-        
+
         String pathInfo = request.getServletPath();
         switch (pathInfo) {
             case "/admin/flashcards/create":
@@ -62,7 +63,7 @@ public class AdminFlashcardServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
             return;
         }
-        
+
         String pathInfo = request.getServletPath();
         switch (pathInfo) {
             case "/admin/flashcards/create":
@@ -95,7 +96,7 @@ public class AdminFlashcardServlet extends HttpServlet {
         UUID groupId = UUID.fromString(groupIdStr);
         FlashcardGroup group = groupRepository.findById(groupId);
         List<Flashcard> flashcards = flashcardRepository.findAllByGroupId(groupId);
-        
+
         request.setAttribute("group", group);
         request.setAttribute("flashcards", flashcards);
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/flashcard/list.jsp").forward(request, response);
@@ -107,7 +108,7 @@ public class AdminFlashcardServlet extends HttpServlet {
             request.setAttribute("groupId", groupIdStr);
             request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/flashcard/form.jsp").forward(request, response);
         } else {
-             response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups");
+            response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups");
         }
     }
 
@@ -169,8 +170,11 @@ public class AdminFlashcardServlet extends HttpServlet {
 
         if (idStr == null || term == null || term.isEmpty() || definition == null || definition.isEmpty()) {
             request.setAttribute("error", "Invalid data.");
-             if(groupIdStr != null) listFlashcards(request, response);
-             else response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups");
+            if (groupIdStr != null) {
+                listFlashcards(request, response);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups");
+            }
             return;
         }
 
@@ -190,7 +194,7 @@ public class AdminFlashcardServlet extends HttpServlet {
             if (definitionImageUrl != null) {
                 flashcard.setDefinitionImageUrl(definitionImageUrl);
             } else {
-                 flashcard.setDefinitionImageUrl(existingDefinitionImage);
+                flashcard.setDefinitionImageUrl(existingDefinitionImage);
             }
 
             if (flashcardRepository.update(flashcard)) {
@@ -201,7 +205,7 @@ public class AdminFlashcardServlet extends HttpServlet {
                 showEditForm(request, response);
             }
         } else {
-             response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr);
+            response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr);
         }
     }
 
@@ -209,14 +213,17 @@ public class AdminFlashcardServlet extends HttpServlet {
         String idStr = request.getParameter("id");
         String groupIdStr = request.getParameter("groupId");
         if (idStr != null) {
-             if(flashcardRepository.delete(UUID.fromString(idStr))) {
-                  response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&success=deleted");
-             } else {
-                  response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&error=delete_failed");
-             }
+            if (flashcardRepository.delete(UUID.fromString(idStr))) {
+                response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&success=deleted");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&error=delete_failed");
+            }
         } else {
-            if(groupIdStr != null) response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr);
-            else response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups");
+            if (groupIdStr != null) {
+                response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups");
+            }
         }
     }
 }

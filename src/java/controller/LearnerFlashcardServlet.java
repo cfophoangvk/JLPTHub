@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
     "/flashcard/review"
 })
 public class LearnerFlashcardServlet extends HttpServlet {
+
     private final FlashcardRepository flashcardRepository = new FlashcardRepository();
     private final FlashcardGroupRepository groupRepository = new FlashcardGroupRepository();
     private final UserFlashcardProgressRepository progressRepository = new UserFlashcardProgressRepository();
@@ -38,7 +39,7 @@ public class LearnerFlashcardServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/auth/login");
             return;
         }
-        
+
         String pathInfo = request.getServletPath();
         switch (pathInfo) {
             case "/flashcard/group":
@@ -60,7 +61,7 @@ public class LearnerFlashcardServlet extends HttpServlet {
             sendJsonResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "{\"error\": \"Unauthorized\"}");
             return;
         }
-        
+
         String pathInfo = request.getServletPath();
         switch (pathInfo) {
             case "/flashcard/bookmark":
@@ -83,29 +84,23 @@ public class LearnerFlashcardServlet extends HttpServlet {
         return (User) request.getAttribute("currentUser");
     }
 
-    /**
-     * GET /flashcard - List flashcard groups by user's target level
-     */
     private void listFlashcardGroups(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = getCurrentUser(request);
         List<FlashcardGroup> groups = groupRepository.findByLevel(user.getTargetLevel());
-        
+
         // Count flashcards in each group
         Map<UUID, Integer> cardCounts = new HashMap<>();
         for (FlashcardGroup group : groups) {
             List<Flashcard> cards = flashcardRepository.findAllByGroupId(group.getId());
             cardCounts.put(group.getId(), cards.size());
         }
-        
+
         request.setAttribute("groups", groups);
         request.setAttribute("cardCounts", cardCounts);
         request.setAttribute("userLevel", user.getTargetLevel());
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/learner/flashcard/list.jsp").forward(request, response);
     }
 
-    /**
-     * GET /flashcard/group?id={id} - View flashcard details with carousel
-     */
     private void viewGroupDetail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String groupIdStr = request.getParameter("id");
         if (groupIdStr == null) {
@@ -115,7 +110,7 @@ public class LearnerFlashcardServlet extends HttpServlet {
 
         User user = getCurrentUser(request);
         UUID groupId = UUID.fromString(groupIdStr);
-        
+
         FlashcardGroup group = groupRepository.findById(groupId);
         if (group == null) {
             response.sendRedirect(request.getContextPath() + "/flashcard");
@@ -123,21 +118,18 @@ public class LearnerFlashcardServlet extends HttpServlet {
         }
 
         List<Flashcard> flashcards = flashcardRepository.findAllByGroupId(groupId);
-        
-        // Get user's progress for these flashcards
+
         List<UserFlashcardProgress> progressList = progressRepository.findByUserAndGroup(user.getId(), groupId);
-        
-        // Create a set of favorite flashcard IDs
+
         Set<UUID> favoriteIds = progressList.stream()
-            .filter(UserFlashcardProgress::isFavorite)
-            .map(UserFlashcardProgress::getFlashcardId)
-            .collect(Collectors.toSet());
-        
-        // Get favorite flashcards
+                .filter(UserFlashcardProgress::isFavorite)
+                .map(UserFlashcardProgress::getFlashcardId)
+                .collect(Collectors.toSet());
+
         List<Flashcard> favoriteFlashcards = flashcards.stream()
-            .filter(f -> favoriteIds.contains(f.getId()))
-            .collect(Collectors.toList());
-        
+                .filter(f -> favoriteIds.contains(f.getId()))
+                .collect(Collectors.toList());
+
         request.setAttribute("group", group);
         request.setAttribute("flashcards", flashcards);
         request.setAttribute("favoriteIds", favoriteIds);
@@ -145,13 +137,11 @@ public class LearnerFlashcardServlet extends HttpServlet {
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/learner/flashcard/detail.jsp").forward(request, response);
     }
 
-    /**
-     * POST /flashcard/bookmark - Toggle bookmark status (AJAX)
-     */
+    //Đánh dấu thẻ cho người học (gọi ngầm bằng AJAX)
     private void toggleBookmark(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        
+
         String flashcardIdStr = request.getParameter("flashcardId");
         if (flashcardIdStr == null) {
             sendJsonResponse(response, HttpServletResponse.SC_BAD_REQUEST, "{\"error\": \"flashcardId is required\"}");
@@ -161,33 +151,30 @@ public class LearnerFlashcardServlet extends HttpServlet {
         try {
             User user = getCurrentUser(request);
             UUID flashcardId = UUID.fromString(flashcardIdStr);
-            
+
             boolean success = progressRepository.toggleFavorite(user.getId(), flashcardId);
             boolean isFavorite = progressRepository.isFavorite(user.getId(), flashcardId);
-            
+
             if (success) {
-                sendJsonResponse(response, HttpServletResponse.SC_OK, 
-                    String.format("{\"success\": true, \"isFavorite\": %s}", isFavorite));
+                sendJsonResponse(response, HttpServletResponse.SC_OK,
+                        String.format("{\"success\": true, \"isFavorite\": %s}", isFavorite));
             } else {
-                sendJsonResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
-                    "{\"error\": \"Failed to toggle bookmark\"}");
+                sendJsonResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "{\"error\": \"Failed to toggle bookmark\"}");
             }
         } catch (Exception e) {
-            ExceptionLogger.logError(LearnerFlashcardServlet.class.getName(), "toggleBookmark", 
-                "Error toggling bookmark: " + e.getMessage());
-            sendJsonResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
-                "{\"error\": \"An error occurred\"}");
+            ExceptionLogger.logError(LearnerFlashcardServlet.class.getName(), "toggleBookmark",
+                    "Error toggling bookmark: " + e.getMessage());
+            sendJsonResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "{\"error\": \"An error occurred\"}");
         }
     }
 
-    /**
-     * GET /flashcard/review?groupId={id}&mode={quiz|match}&scope={all|favorites}
-     */
     private void showReviewPage(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String groupIdStr = request.getParameter("groupId");
-        String mode = request.getParameter("mode"); // quiz or match
-        String scope = request.getParameter("scope"); // all or favorites
-        
+        String mode = request.getParameter("mode");
+        String scope = request.getParameter("scope");
+
         if (groupIdStr == null) {
             response.sendRedirect(request.getContextPath() + "/flashcard");
             return;
@@ -196,33 +183,34 @@ public class LearnerFlashcardServlet extends HttpServlet {
         User user = getCurrentUser(request);
         UUID groupId = UUID.fromString(groupIdStr);
         FlashcardGroup group = groupRepository.findById(groupId);
-        
+
         if (group == null) {
             response.sendRedirect(request.getContextPath() + "/flashcard");
             return;
         }
 
-        // Default values
-        if (mode == null) mode = "quiz";
-        if (scope == null) scope = "all";
+        if (mode == null) {
+            mode = "quiz";
+        }
+        if (scope == null) {
+            scope = "all";
+        }
 
         List<Flashcard> flashcards;
         if ("favorites".equals(scope)) {
-            // Get only favorite flashcards
             List<UserFlashcardProgress> favorites = progressRepository.findFavoritesByUserAndGroup(user.getId(), groupId);
             Set<UUID> favoriteIds = favorites.stream()
-                .map(UserFlashcardProgress::getFlashcardId)
-                .collect(Collectors.toSet());
+                    .map(UserFlashcardProgress::getFlashcardId)
+                    .collect(Collectors.toSet());
             flashcards = flashcardRepository.findAllByGroupId(groupId).stream()
-                .filter(f -> favoriteIds.contains(f.getId()))
-                .collect(Collectors.toList());
+                    .filter(f -> favoriteIds.contains(f.getId()))
+                    .collect(Collectors.toList());
         } else {
             flashcards = flashcardRepository.findAllByGroupId(groupId);
         }
 
-        // Shuffle flashcards for review
         Collections.shuffle(flashcards);
-        
+
         request.setAttribute("group", group);
         request.setAttribute("flashcards", flashcards);
         request.setAttribute("mode", mode);
@@ -230,40 +218,38 @@ public class LearnerFlashcardServlet extends HttpServlet {
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/learner/flashcard/review.jsp").forward(request, response);
     }
 
-    /**
-     * POST /flashcard/review - Submit review answers (AJAX)
-     */
+    //Lưu tiến trình ôn tập của người học (gọi ngầm bằng AJAX)
     private void submitReview(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        
+
         try {
             User user = getCurrentUser(request);
             String flashcardIdStr = request.getParameter("flashcardId");
             String isCorrectStr = request.getParameter("isCorrect");
-            
+
             if (flashcardIdStr == null || isCorrectStr == null) {
-                sendJsonResponse(response, HttpServletResponse.SC_BAD_REQUEST, 
-                    "{\"error\": \"flashcardId and isCorrect are required\"}");
+                sendJsonResponse(response, HttpServletResponse.SC_BAD_REQUEST,
+                        "{\"error\": \"flashcardId and isCorrect are required\"}");
                 return;
             }
-            
+
             UUID flashcardId = UUID.fromString(flashcardIdStr);
             boolean isCorrect = Boolean.parseBoolean(isCorrectStr);
-            
-            // Update status based on answer
+
             String status = isCorrect ? "Learned" : "Learning";
             progressRepository.updateReviewStatus(user.getId(), flashcardId, status);
-            
+
             sendJsonResponse(response, HttpServletResponse.SC_OK, "{\"success\": true}");
         } catch (Exception e) {
-            ExceptionLogger.logError(LearnerFlashcardServlet.class.getName(), "submitReview", 
-                "Error submitting review: " + e.getMessage());
-            sendJsonResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
-                "{\"error\": \"An error occurred\"}");
+            ExceptionLogger.logError(LearnerFlashcardServlet.class.getName(), "submitReview",
+                    "Error submitting review: " + e.getMessage());
+            sendJsonResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "{\"error\": \"An error occurred\"}");
         }
     }
 
+    //Trả về chuỗi JSON bằng PrintWriter (khi gọi ngầm bằng AJAX)
     private void sendJsonResponse(HttpServletResponse response, int status, String json) throws IOException {
         response.setStatus(status);
         response.setContentType("application/json");

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class FlashcardRepository {
+
     private final Connection conn = DBConnect.getConnection();
 
     public List<Flashcard> findAllByGroupId(UUID groupId) {
@@ -91,7 +92,7 @@ public class FlashcardRepository {
         String sql = "DELETE FROM Flashcard WHERE GroupId = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, groupId.toString());
-            return stmt.executeUpdate() >= 0; 
+            return stmt.executeUpdate() >= 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(FlashcardRepository.class.getName(), "deleteAllByGroupId", "Error deleting all flashcards by group ID: " + e.getMessage());
         }

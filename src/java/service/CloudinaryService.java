@@ -3,6 +3,7 @@ package service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import common.constant.BaseURL;
+import common.constant.Configuration;
 import common.logger.ExceptionLogger;
 import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.Part;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class CloudinaryService {
+
     private static Cloudinary cloudinary;
 
     static {
@@ -31,7 +33,7 @@ public class CloudinaryService {
                     "api_key", apiKey,
                     "api_secret", apiSecret));
         } catch (Exception e) {
-             ExceptionLogger.logError(CloudinaryService.class.getName(), "static initialization", "Error initializing Cloudinary: " + e.getMessage());
+            ExceptionLogger.logError(CloudinaryService.class.getName(), "static initialization", "Error initializing Cloudinary: " + e.getMessage());
         }
     }
 
@@ -45,7 +47,7 @@ public class CloudinaryService {
         try {
             file = convertPartToFile(filePart);
             Map<String, Object> uploadParams = ObjectUtils.asMap(
-                "folder", BaseURL.CLOUDINARY_FLASHCARD_FOLDER
+                    "folder", BaseURL.CLOUDINARY_FLASHCARD_FOLDER
             );
             Map uploadResult = cloudinary.uploader().upload(file, uploadParams);
             return (String) uploadResult.get("secure_url");
@@ -59,11 +61,40 @@ public class CloudinaryService {
         }
     }
 
+    // Upload audio lên cloud (sử dụng resource_type = "video" cho audio)
+    public String uploadAudio(Part filePart, String folder) {
+        if (filePart == null || filePart.getSize() == 0) {
+            return null;
+        }
+
+        if (filePart.getSize() > Configuration.MAX_AUDIO_SIZE) {
+            ExceptionLogger.logError(CloudinaryService.class.getName(), "uploadAudio", "Audio file exceeds 100MB limit: " + filePart.getSize() + " bytes");
+            return null;
+        }
+
+        File file = null;
+        try {
+            file = convertPartToFile(filePart);
+            Map<String, Object> uploadParams = ObjectUtils.asMap(
+                    "folder", folder,
+                    "resource_type", "video"
+            );
+            Map uploadResult = cloudinary.uploader().upload(file, uploadParams);
+            return (String) uploadResult.get("secure_url");
+        } catch (Exception e) {
+            ExceptionLogger.logError(CloudinaryService.class.getName(), "uploadAudio", "Error uploading audio to Cloudinary: " + e.getMessage());
+            return null;
+        } finally {
+            if (file != null && file.exists()) {
+                file.delete();
+            }
+        }
+    }
+
     //Chuyển đổi các phần nhỏ thành file
     private File convertPartToFile(Part filePart) throws IOException {
         File file = new File(System.getProperty("java.io.tmpdir") + File.separator + UUID.randomUUID().toString() + "_" + getFileName(filePart));
-        try (InputStream input = filePart.getInputStream();
-             FileOutputStream output = new FileOutputStream(file)) {
+        try (InputStream input = filePart.getInputStream(); FileOutputStream output = new FileOutputStream(file)) {
             byte[] buffer = new byte[1024];
             int length;
             while ((length = input.read(buffer)) > 0) {

@@ -15,6 +15,7 @@ import service.UserService;
 
 @WebServlet(name = "UserServlet", urlPatterns = {"/user/profile"})
 public class UserServlet extends HttpServlet {
+
     private final UserService userService = new UserService();
 
     @Override
@@ -45,7 +46,7 @@ public class UserServlet extends HttpServlet {
 
     private void handleProfilePage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // User is already set by AuthFilter
+        //Lấy từ bên AuthFilter
         User currentUser = (User) request.getAttribute("currentUser");
 
         if (currentUser == null) {
@@ -55,20 +56,21 @@ public class UserServlet extends HttpServlet {
 
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/user/profile.jsp").forward(request, response);
     }
-    
+
     private void handleUpdateProfile(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         UUID id = UUID.fromString(request.getParameter("id"));
         String fullName = request.getParameter("fullName");
         TargetLevel targetLevel = TargetLevel.valueOf(request.getParameter("targetLevel"));
-        
+
         User user = userService.updateProfile(id, fullName, targetLevel);
         if (user != null) {
             request.setAttribute("success", "Thành công");
-        }else {
+            request.setAttribute("currentUser", user);
+        } else {
             request.setAttribute("error", "Lỗi");
         }
-        
+
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/user/profile.jsp").forward(request, response);
     }
 }
