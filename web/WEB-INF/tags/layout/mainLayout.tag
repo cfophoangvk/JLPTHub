@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="ui" tagdir="/WEB-INF/tags/ui" %>
-<%@tag description="Main Layout" pageEncoding="UTF-8"%>
+<%@tag description="Main Layout" pageEncoding="UTF-8" import="common.constant.RoleConstant"%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -111,6 +111,32 @@
             .scrollbar-hide {
                 scrollbar-width: none;
             }
+
+            /* Flip Card Animation */
+            .flip-card {
+                perspective: 1000px;
+                height: 320px;
+            }
+            .flip-card-inner {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                transition: transform 0.6s;
+                transform-style: preserve-3d;
+            }
+            .flip-card.flipped .flip-card-inner {
+                transform: rotateY(180deg);
+            }
+            .flip-card-front, .flip-card-back {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+            }
+            .flip-card-back {
+                transform: rotateY(180deg);
+            }
         </style>
         <script>
             // Open a dialog by ID
@@ -214,6 +240,13 @@
                 }
             }
 
+            function flipCard(id) {
+                const card = document.getElementById(id);
+                if (card) {
+                    card.classList.toggle('flipped');
+                }
+            }
+
             function getCookie(name) {
                 const nameEQ = name + "=";
                 const ca = document.cookie.split(';');
@@ -232,10 +265,13 @@
             let isSidebarExpanded = false;
             document.addEventListener("DOMContentLoaded", () => {
                 const cookieValue = getCookie('isSidebarExpanded');
+                console.log(cookieValue);
                 if (cookieValue === "true") {
                     isSidebarExpanded = true;
                 } else if (cookieValue === "false") {
                     isSidebarExpanded = false;
+                } else {
+                    toggleSidebar();
                 }
                 updateSidebarUI();
             });
@@ -254,6 +290,7 @@
                 const sidebarButton = document.querySelector(".sidebar-button");
                 const sidebarExpanded = document.getElementById("sidebar-expanded");
                 const sidebarCollapsed = document.getElementById("sidebar-collapsed");
+                const sidebarLink = document.querySelectorAll(".sidebar-link ");
 
                 if (isSidebarExpanded) { //Mở sidebar
                     sidebarLogo.classList.remove('w-0', 'h-0');
@@ -270,6 +307,7 @@
                     sidebarButton.classList.add("ml-2", "w-10");
                     sidebarExpanded.classList.remove("hidden");
                     sidebarCollapsed.classList.add("hidden");
+                    Array.from(sidebarLink).forEach(item => item.classList.remove("justify-center"));
                 } else { //Đóng sidebar
                     sidebarLogo.classList.remove('w-full', 'flex', 'p-4');
                     sidebarLogo.classList.add('w-0', 'h-0');
@@ -285,6 +323,7 @@
                     sidebarButton.classList.add('w-0');
                     sidebarCollapsed.classList.remove("hidden");
                     sidebarExpanded.classList.add("hidden");
+                    Array.from(sidebarLink).forEach(item => item.classList.add("justify-center"));
                 }
             }
         </script>
@@ -329,34 +368,26 @@
                 </div>
 
                 <ul class="flex-1 overflow-y-auto px-3 scrollbar-hide">
-                    <li>
-                        <a class="relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
-                            <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
-                                Sidebar Item
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
-                            <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
-                                Sidebar Item
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
-                            <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
-                                Sidebar Item
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
-                            <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
-                                Sidebar Item
-                            </span>
-                        </a>
-                    </li>
+                    <c:if test="${currentUser.getRole() == RoleConstant.LEARNER}">
+                        <li>
+                            <a href="${pageContext.request.contextPath}/flashcard" class="sidebar-link flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
+                                <i class="fa-solid fa-layer-group text-rose-500"></i>
+                                <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
+                                    Bộ thẻ Flashcard
+                                </span>
+                            </a>
+                        </li>
+                    </c:if>
+                    <c:if test="${currentUser.getRole() == RoleConstant.ADMIN}">
+                        <li>
+                            <a href="${pageContext.request.contextPath}/admin/flashcard-groups" class="sidebar-link flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
+                                <i class="fa-solid fa-layer-group text-rose-500"></i>
+                                <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
+                                    Quản lý bộ thẻ
+                                </span>
+                            </a>
+                        </li>
+                    </c:if>
                 </ul>
 
                 <div class="p-2 text-gray-500 border-t border-gray-300 flex justify-center items-center">

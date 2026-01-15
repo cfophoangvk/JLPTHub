@@ -29,7 +29,7 @@ public class AuthService {
         user.setPassword(PasswordUtil.hashPassword(password));
         user.setFullName(fullName);
         user.setTargetLevel(targetLevel);
-        user.setRole(RoleConstant.USER);
+        user.setRole(RoleConstant.LEARNER);
         user.setIsEmailVerified(false);
         user.setAuthProvider("local");
         
@@ -110,7 +110,7 @@ public class AuthService {
         user.setGoogleId(googleUser.getId());
         user.setAuthProvider("google");
         user.setIsEmailVerified(true);
-        user.setRole(RoleConstant.USER);
+        user.setRole(RoleConstant.LEARNER);
         user.setTargetLevel(TargetLevel.N5);
         
         User savedUser = userRepository.save(user);

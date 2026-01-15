@@ -1,6 +1,7 @@
 <%@ tag description="Button" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<%@ attribute name="id" required="false" type="java.lang.String" %>
 <%@ attribute name="variant" required="false" type="java.lang.String" %>
 <%@ attribute name="size" required="false" type="java.lang.String" %>
 <%@ attribute name="type" required="false" type="java.lang.String" %>
@@ -46,6 +47,6 @@
     </c:otherwise>
 </c:choose>
 
-<button type="${btnType}" class="${baseClass} ${variantClass} ${sizeClass} ${className}" onclick="${onclick}">
+<button id="${id}" type="${btnType}" class="${baseClass} ${variantClass} ${sizeClass} ${className}" onclick="${onclick}">
     <jsp:doBody/>
 </button>

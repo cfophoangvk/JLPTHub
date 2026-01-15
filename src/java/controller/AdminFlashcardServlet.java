@@ -2,7 +2,6 @@ package controller;
 
 import common.constant.BaseURL;
 import common.constant.RoleConstant;
-import common.logger.ExceptionLogger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
