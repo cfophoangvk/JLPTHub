@@ -77,6 +77,7 @@ public class FlashcardRepository {
         return false;
     }
 
+    //tạm thời xóa cứng, sẽ thêm trường Status sau
     public boolean delete(UUID id) {
         String sql = "DELETE FROM Flashcard WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {

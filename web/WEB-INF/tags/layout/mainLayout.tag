@@ -265,7 +265,6 @@
             let isSidebarExpanded = false;
             document.addEventListener("DOMContentLoaded", () => {
                 const cookieValue = getCookie('isSidebarExpanded');
-                console.log(cookieValue);
                 if (cookieValue === "true") {
                     isSidebarExpanded = true;
                 } else if (cookieValue === "false") {

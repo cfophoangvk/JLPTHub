@@ -14,11 +14,7 @@
                                             Bộ thẻ Flashcard
                                         </h1>
                                         <p class="text-gray-600 mt-2">
-                                            Học từ vựng với các bộ thẻ được thiết kế cho cấp độ
-                                            <span
-                                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-rose-100 text-rose-700 ml-1">
-                                                ${userLevel}
-                                            </span>
+                                            Học từ vựng với các bộ thẻ được thiết kế cho các cấp độ
                                         </p>
                                     </div>
                                 </div>
@@ -34,8 +30,7 @@
                                             <i class="fa-solid fa-folder-open text-gray-400 text-4xl"></i>
                                         </div>
                                         <h3 class="text-xl font-semibold text-gray-700 mb-2">Chưa có bộ thẻ nào</h3>
-                                        <p class="text-gray-500">Các bộ thẻ cho cấp độ ${userLevel} sẽ sớm được cập
-                                            nhật.</p>
+                                        <p class="text-gray-500">Các bộ thẻ sẽ sớm được cập nhật.</p>
                                     </div>
                                 </c:when>
                                 <c:otherwise>

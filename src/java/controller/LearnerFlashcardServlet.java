@@ -86,9 +86,15 @@ public class LearnerFlashcardServlet extends HttpServlet {
 
     private void listFlashcardGroups(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = getCurrentUser(request);
-        List<FlashcardGroup> groups = groupRepository.findByLevel(user.getTargetLevel());
+        
+        // Lấy các level từ N5 đến level hiện tại của user
+        List<model.TargetLevel> levels = Arrays.stream(model.TargetLevel.values())
+                .filter(l -> l.ordinal() <= user.getTargetLevel().ordinal())
+                .collect(Collectors.toList());
+                
+        List<FlashcardGroup> groups = groupRepository.findByLevels(levels);
 
-        // Count flashcards in each group
+        // Tính số thẻ trong mỗi bộ thẻ
         Map<UUID, Integer> cardCounts = new HashMap<>();
         for (FlashcardGroup group : groups) {
             List<Flashcard> cards = flashcardRepository.findAllByGroupId(group.getId());
@@ -97,7 +103,6 @@ public class LearnerFlashcardServlet extends HttpServlet {
 
         request.setAttribute("groups", groups);
         request.setAttribute("cardCounts", cardCounts);
-        request.setAttribute("userLevel", user.getTargetLevel());
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/learner/flashcard/list.jsp").forward(request, response);
     }
 

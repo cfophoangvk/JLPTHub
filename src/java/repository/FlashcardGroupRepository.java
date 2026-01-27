@@ -43,6 +43,35 @@ public class FlashcardGroupRepository {
         return list;
     }
 
+    public List<FlashcardGroup> findByLevels(List<TargetLevel> levels) {
+        List<FlashcardGroup> list = new ArrayList<>();
+        if (levels == null || levels.isEmpty()) {
+            return list;
+        }
+
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM FlashcardGroup WHERE Level IN (");
+        for (int i = 0; i < levels.size(); i++) {
+            sqlBuilder.append("?");
+            if (i < levels.size() - 1) {
+                sqlBuilder.append(", ");
+            }
+        }
+        sqlBuilder.append(")");
+
+        try (PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            for (int i = 0; i < levels.size(); i++) {
+                stmt.setString(i + 1, levels.get(i).name());
+            }
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToFlashcardGroup(rs));
+            }
+        } catch (SQLException e) {
+            ExceptionLogger.logError(FlashcardGroupRepository.class.getName(), "findByLevels", "Error finding flashcard groups by levels: " + e.getMessage());
+        }
+        return list;
+    }
+
     public FlashcardGroup findById(UUID id) {
         String sql = "SELECT * FROM FlashcardGroup WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {

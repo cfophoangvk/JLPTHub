@@ -84,8 +84,8 @@ public class LessonGroupRepository {
         return false;
     }
 
+    //tạm thời xóa cứng, sẽ thêm trường Status sau
     public boolean delete(UUID id) {
-        // Cascade delete is handled by database constraint (ON DELETE CASCADE)
         String sql = "DELETE FROM LessonGroup WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());

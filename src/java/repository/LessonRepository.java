@@ -89,8 +89,8 @@ public class LessonRepository {
         return false;
     }
 
+    //tạm thời xóa cứng, sẽ thêm trường Status sau
     public boolean delete(UUID id) {
-        // Cascade delete for GrammarPoints is handled by database constraint
         String sql = "DELETE FROM Lesson WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());

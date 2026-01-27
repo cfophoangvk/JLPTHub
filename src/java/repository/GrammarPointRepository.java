@@ -73,6 +73,7 @@ public class GrammarPointRepository {
         return false;
     }
 
+    //tạm thời xóa cứng, sẽ thêm trường Status sau
     public boolean delete(UUID id) {
         String sql = "DELETE FROM GrammarPoint WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
