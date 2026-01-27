@@ -11,12 +11,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
-import model.Lesson;
-import model.LessonGroup;
-import model.User;
-import repository.LessonGroupRepository;
-import repository.LessonRepository;
-import service.CloudinaryService;
+import model.*;
+import service.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -35,8 +31,8 @@ import java.util.UUID;
 )
 public class AdminLessonServlet extends HttpServlet {
 
-    private final LessonRepository lessonRepository = new LessonRepository();
-    private final LessonGroupRepository groupRepository = new LessonGroupRepository();
+    private final LessonGroupService groupService = new LessonGroupService();
+    private final LessonService lessonService = new LessonService();
     private final CloudinaryService cloudinaryService = new CloudinaryService();
 
     @Override
@@ -108,8 +104,8 @@ public class AdminLessonServlet extends HttpServlet {
         }
 
         UUID groupId = UUID.fromString(groupIdStr);
-        LessonGroup group = groupRepository.findById(groupId);
-        List<Lesson> lessons = lessonRepository.findAllByGroupId(groupId);
+        LessonGroup group = groupService.findById(groupId);
+        List<Lesson> lessons = lessonService.findAllByGroupId(groupId);
 
         request.setAttribute("group", group);
         request.setAttribute("lessons", lessons);
@@ -119,7 +115,7 @@ public class AdminLessonServlet extends HttpServlet {
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String groupIdStr = request.getParameter("groupId");
         if (groupIdStr != null) {
-            LessonGroup group = groupRepository.findById(UUID.fromString(groupIdStr));
+            LessonGroup group = groupService.findById(UUID.fromString(groupIdStr));
             request.setAttribute("group", group);
             request.setAttribute("groupId", groupIdStr);
             request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/lesson/form.jsp").forward(request, response);
@@ -131,9 +127,9 @@ public class AdminLessonServlet extends HttpServlet {
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idStr = request.getParameter("id");
         if (idStr != null) {
-            Lesson lesson = lessonRepository.findById(UUID.fromString(idStr));
+            Lesson lesson = lessonService.findById(UUID.fromString(idStr));
             if (lesson != null) {
-                LessonGroup group = groupRepository.findById(lesson.getGroupId());
+                LessonGroup group = groupService.findById(lesson.getGroupId());
                 request.setAttribute("lesson", lesson);
                 request.setAttribute("group", group);
                 request.setAttribute("groupId", lesson.getGroupId().toString());
@@ -204,7 +200,7 @@ public class AdminLessonServlet extends HttpServlet {
         lesson.setContentHtml(contentHtml);
         lesson.setOrderIndex(orderIndex);
 
-        if (lessonRepository.save(lesson)) {
+        if (lessonService.save(lesson)) {
             response.sendRedirect(request.getContextPath() + "/admin/lessons?groupId=" + groupIdStr + "&success=created");
         } else {
             request.setAttribute("error", "Không thể tạo bài học. Vui lòng thử lại.");
@@ -235,7 +231,7 @@ public class AdminLessonServlet extends HttpServlet {
 
         if (title.length() > 150) {
             request.setAttribute("error", "Tiêu đề không được vượt quá 150 ký tự.");
-            Lesson lesson = lessonRepository.findById(UUID.fromString(idStr));
+            Lesson lesson = lessonService.findById(UUID.fromString(idStr));
             request.setAttribute("lesson", lesson);
             request.setAttribute("groupId", groupIdStr);
             showEditForm(request, response);
@@ -244,7 +240,7 @@ public class AdminLessonServlet extends HttpServlet {
 
         if (audioPart != null && audioPart.getSize() > 0 && audioPart.getSize() > Configuration.MAX_AUDIO_SIZE) {
             request.setAttribute("error", "File audio không được vượt quá 100MB.");
-            Lesson lesson = lessonRepository.findById(UUID.fromString(idStr));
+            Lesson lesson = lessonService.findById(UUID.fromString(idStr));
             request.setAttribute("lesson", lesson);
             request.setAttribute("groupId", groupIdStr);
             showEditForm(request, response);
@@ -257,7 +253,7 @@ public class AdminLessonServlet extends HttpServlet {
                 orderIndex = Integer.parseInt(orderIndexStr);
             } catch (NumberFormatException e) {
                 request.setAttribute("error", "Thứ tự phải là số.");
-                Lesson lesson = lessonRepository.findById(UUID.fromString(idStr));
+                Lesson lesson = lessonService.findById(UUID.fromString(idStr));
                 request.setAttribute("lesson", lesson);
                 request.setAttribute("groupId", groupIdStr);
                 showEditForm(request, response);
@@ -265,7 +261,7 @@ public class AdminLessonServlet extends HttpServlet {
             }
         }
 
-        Lesson lesson = lessonRepository.findById(UUID.fromString(idStr));
+        Lesson lesson = lessonService.findById(UUID.fromString(idStr));
         if (lesson != null) {
             lesson.setTitle(title.trim());
             lesson.setDescription(description != null ? description.trim() : null);
@@ -279,7 +275,7 @@ public class AdminLessonServlet extends HttpServlet {
                 lesson.setAudioUrl(existingAudioUrl);
             }
 
-            if (lessonRepository.update(lesson)) {
+            if (lessonService.update(lesson)) {
                 response.sendRedirect(request.getContextPath() + "/admin/lessons?groupId=" + groupIdStr + "&success=updated");
             } else {
                 request.setAttribute("error", "Không thể cập nhật bài học. Vui lòng thử lại.");
@@ -296,7 +292,7 @@ public class AdminLessonServlet extends HttpServlet {
         String idStr = request.getParameter("id");
         String groupIdStr = request.getParameter("groupId");
         if (idStr != null) {
-            if (lessonRepository.delete(UUID.fromString(idStr))) {
+            if (lessonService.delete(UUID.fromString(idStr))) {
                 response.sendRedirect(request.getContextPath() + "/admin/lessons?groupId=" + groupIdStr + "&success=deleted");
             } else {
                 response.sendRedirect(request.getContextPath() + "/admin/lessons?groupId=" + groupIdStr + "&error=delete_failed");

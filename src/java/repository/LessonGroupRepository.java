@@ -42,6 +42,32 @@ public class LessonGroupRepository {
         return list;
     }
 
+    public List<LessonGroup> findByLevels(List<TargetLevel> levels) {
+        List<LessonGroup> list = new ArrayList<>();
+        if (levels == null || levels.isEmpty()) {
+            return list;
+        }
+
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < levels.size(); i++) {
+            placeholders.append(i > 0 ? ", ?" : "?");
+        }
+
+        String sql = "SELECT * FROM LessonGroup WHERE Level IN (" + placeholders + ") ORDER BY Level, OrderIndex";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            for (int i = 0; i < levels.size(); i++) {
+                stmt.setString(i + 1, levels.get(i).name());
+            }
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToLessonGroup(rs));
+            }
+        } catch (SQLException e) {
+            ExceptionLogger.logError(LessonGroupRepository.class.getName(), "findByLevels", "Error finding lesson groups by levels: " + e.getMessage());
+        }
+        return list;
+    }
+
     public LessonGroup findById(UUID id) {
         String sql = "SELECT * FROM LessonGroup WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {

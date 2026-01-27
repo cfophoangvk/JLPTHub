@@ -8,13 +8,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.Flashcard;
-import model.FlashcardGroup;
-import model.User;
-import model.UserFlashcardProgress;
-import repository.FlashcardGroupRepository;
-import repository.FlashcardRepository;
-import repository.UserFlashcardProgressRepository;
+import model.*;
+import service.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,9 +24,9 @@ import java.util.stream.Collectors;
 })
 public class LearnerFlashcardServlet extends HttpServlet {
 
-    private final FlashcardRepository flashcardRepository = new FlashcardRepository();
-    private final FlashcardGroupRepository groupRepository = new FlashcardGroupRepository();
-    private final UserFlashcardProgressRepository progressRepository = new UserFlashcardProgressRepository();
+    private final FlashcardService flashcardService = new FlashcardService();
+    private final FlashcardGroupService groupService = new FlashcardGroupService();
+    private final UserFlashcardProgressService progressService = new UserFlashcardProgressService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -86,18 +81,13 @@ public class LearnerFlashcardServlet extends HttpServlet {
 
     private void listFlashcardGroups(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = getCurrentUser(request);
-        
-        // Lấy các level từ N5 đến level hiện tại của user
-        List<model.TargetLevel> levels = Arrays.stream(model.TargetLevel.values())
-                .filter(l -> l.ordinal() <= user.getTargetLevel().ordinal())
-                .collect(Collectors.toList());
                 
-        List<FlashcardGroup> groups = groupRepository.findByLevels(levels);
+        List<FlashcardGroup> groups = groupService.findFromN5LevelTo(user.getTargetLevel());
 
         // Tính số thẻ trong mỗi bộ thẻ
         Map<UUID, Integer> cardCounts = new HashMap<>();
         for (FlashcardGroup group : groups) {
-            List<Flashcard> cards = flashcardRepository.findAllByGroupId(group.getId());
+            List<Flashcard> cards = flashcardService.findAllByGroupId(group.getId());
             cardCounts.put(group.getId(), cards.size());
         }
 
@@ -116,15 +106,15 @@ public class LearnerFlashcardServlet extends HttpServlet {
         User user = getCurrentUser(request);
         UUID groupId = UUID.fromString(groupIdStr);
 
-        FlashcardGroup group = groupRepository.findById(groupId);
+        FlashcardGroup group = groupService.findById(groupId);
         if (group == null) {
             response.sendRedirect(request.getContextPath() + "/flashcard");
             return;
         }
 
-        List<Flashcard> flashcards = flashcardRepository.findAllByGroupId(groupId);
+        List<Flashcard> flashcards = flashcardService.findAllByGroupId(groupId);
 
-        List<UserFlashcardProgress> progressList = progressRepository.findByUserAndGroup(user.getId(), groupId);
+        List<UserFlashcardProgress> progressList = progressService.findByUserAndGroup(user.getId(), groupId);
 
         Set<UUID> favoriteIds = progressList.stream()
                 .filter(UserFlashcardProgress::isFavorite)
@@ -157,8 +147,8 @@ public class LearnerFlashcardServlet extends HttpServlet {
             User user = getCurrentUser(request);
             UUID flashcardId = UUID.fromString(flashcardIdStr);
 
-            boolean success = progressRepository.toggleFavorite(user.getId(), flashcardId);
-            boolean isFavorite = progressRepository.isFavorite(user.getId(), flashcardId);
+            boolean success = progressService.toggleFavorite(user.getId(), flashcardId);
+            boolean isFavorite = progressService.isFavorite(user.getId(), flashcardId);
 
             if (success) {
                 sendJsonResponse(response, HttpServletResponse.SC_OK,
@@ -187,7 +177,7 @@ public class LearnerFlashcardServlet extends HttpServlet {
 
         User user = getCurrentUser(request);
         UUID groupId = UUID.fromString(groupIdStr);
-        FlashcardGroup group = groupRepository.findById(groupId);
+        FlashcardGroup group = groupService.findById(groupId);
 
         if (group == null) {
             response.sendRedirect(request.getContextPath() + "/flashcard");
@@ -203,15 +193,15 @@ public class LearnerFlashcardServlet extends HttpServlet {
 
         List<Flashcard> flashcards;
         if ("favorites".equals(scope)) {
-            List<UserFlashcardProgress> favorites = progressRepository.findFavoritesByUserAndGroup(user.getId(), groupId);
+            List<UserFlashcardProgress> favorites = progressService.findFavoritesByUserAndGroup(user.getId(), groupId);
             Set<UUID> favoriteIds = favorites.stream()
                     .map(UserFlashcardProgress::getFlashcardId)
                     .collect(Collectors.toSet());
-            flashcards = flashcardRepository.findAllByGroupId(groupId).stream()
+            flashcards = flashcardService.findAllByGroupId(groupId).stream()
                     .filter(f -> favoriteIds.contains(f.getId()))
                     .collect(Collectors.toList());
         } else {
-            flashcards = flashcardRepository.findAllByGroupId(groupId);
+            flashcards = flashcardService.findAllByGroupId(groupId);
         }
 
         Collections.shuffle(flashcards);
@@ -241,9 +231,7 @@ public class LearnerFlashcardServlet extends HttpServlet {
 
             UUID flashcardId = UUID.fromString(flashcardIdStr);
             boolean isCorrect = Boolean.parseBoolean(isCorrectStr);
-
-            String status = isCorrect ? "Learned" : "Learning";
-            progressRepository.updateReviewStatus(user.getId(), flashcardId, status);
+            progressService.updateReviewStatus(user.getId(), flashcardId, isCorrect);
 
             sendJsonResponse(response, HttpServletResponse.SC_OK, "{\"success\": true}");
         } catch (Exception e) {

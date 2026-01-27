@@ -376,6 +376,14 @@
                                 </span>
                             </a>
                         </li>
+                        <li>
+                            <a href="${pageContext.request.contextPath}/lesson" class="sidebar-link flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
+                                <i class="fa-solid fa-graduation-cap text-rose-500"></i>
+                                <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
+                                    Các bài học
+                                </span>
+                            </a>
+                        </li>
                     </c:if>
                     <c:if test="${currentUser.getRole() == RoleConstant.ADMIN}">
                         <li>

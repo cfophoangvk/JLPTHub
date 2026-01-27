@@ -9,12 +9,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
-import model.Flashcard;
-import model.FlashcardGroup;
-import model.User;
-import repository.FlashcardGroupRepository;
-import repository.FlashcardRepository;
-import service.CloudinaryService;
+import model.*;
+import service.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,8 +27,8 @@ import java.util.UUID;
         maxRequestSize = 1024 * 1024 * 50)   // 50MB
 public class AdminFlashcardServlet extends HttpServlet {
 
-    private final FlashcardRepository flashcardRepository = new FlashcardRepository();
-    private final FlashcardGroupRepository groupRepository = new FlashcardGroupRepository();
+    private final FlashcardService flashcardService = new FlashcardService();
+    private final FlashcardGroupService groupService = new FlashcardGroupService();
     private final CloudinaryService cloudinaryService = new CloudinaryService();
 
     @Override
@@ -94,8 +90,8 @@ public class AdminFlashcardServlet extends HttpServlet {
         }
 
         UUID groupId = UUID.fromString(groupIdStr);
-        FlashcardGroup group = groupRepository.findById(groupId);
-        List<Flashcard> flashcards = flashcardRepository.findAllByGroupId(groupId);
+        FlashcardGroup group = groupService.findById(groupId);
+        List<Flashcard> flashcards = flashcardService.findAllByGroupId(groupId);
 
         request.setAttribute("group", group);
         request.setAttribute("flashcards", flashcards);
@@ -115,7 +111,7 @@ public class AdminFlashcardServlet extends HttpServlet {
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idStr = request.getParameter("id");
         if (idStr != null) {
-            Flashcard flashcard = flashcardRepository.findById(UUID.fromString(idStr));
+            Flashcard flashcard = flashcardService.findById(UUID.fromString(idStr));
             request.setAttribute("flashcard", flashcard);
             request.setAttribute("groupId", flashcard.getGroupId().toString());
             request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/flashcard/form.jsp").forward(request, response);
@@ -149,7 +145,7 @@ public class AdminFlashcardServlet extends HttpServlet {
         flashcard.setTermImageUrl(termImageUrl);
         flashcard.setDefinitionImageUrl(definitionImageUrl);
 
-        if (flashcardRepository.save(flashcard)) {
+        if (flashcardService.save(flashcard)) {
             response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&success=created");
         } else {
             request.setAttribute("error", "Failed to create flashcard.");
@@ -178,7 +174,7 @@ public class AdminFlashcardServlet extends HttpServlet {
             return;
         }
 
-        Flashcard flashcard = flashcardRepository.findById(UUID.fromString(idStr));
+        Flashcard flashcard = flashcardService.findById(UUID.fromString(idStr));
         if (flashcard != null) {
             flashcard.setTerm(term);
             flashcard.setDefinition(definition);
@@ -197,7 +193,7 @@ public class AdminFlashcardServlet extends HttpServlet {
                 flashcard.setDefinitionImageUrl(existingDefinitionImage);
             }
 
-            if (flashcardRepository.update(flashcard)) {
+            if (flashcardService.update(flashcard)) {
                 response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&success=updated");
             } else {
                 request.setAttribute("error", "Failed to update flashcard.");
@@ -213,7 +209,7 @@ public class AdminFlashcardServlet extends HttpServlet {
         String idStr = request.getParameter("id");
         String groupIdStr = request.getParameter("groupId");
         if (idStr != null) {
-            if (flashcardRepository.delete(UUID.fromString(idStr))) {
+            if (flashcardService.delete(UUID.fromString(idStr))) {
                 response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&success=deleted");
             } else {
                 response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&error=delete_failed");

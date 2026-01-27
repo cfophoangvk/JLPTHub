@@ -8,11 +8,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.GrammarPoint;
-import model.Lesson;
-import model.User;
-import repository.GrammarPointRepository;
-import repository.LessonRepository;
+import model.*;
+import service.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,8 +23,8 @@ import java.util.UUID;
 })
 public class AdminGrammarPointServlet extends HttpServlet {
 
-    private final GrammarPointRepository grammarRepository = new GrammarPointRepository();
-    private final LessonRepository lessonRepository = new LessonRepository();
+    private final GrammarPointService grammarService = new GrammarPointService();
+    private final LessonService lessonService = new LessonService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -98,8 +95,8 @@ public class AdminGrammarPointServlet extends HttpServlet {
         }
 
         UUID lessonId = UUID.fromString(lessonIdStr);
-        Lesson lesson = lessonRepository.findById(lessonId);
-        List<GrammarPoint> grammarPoints = grammarRepository.findAllByLessonId(lessonId);
+        Lesson lesson = lessonService.findById(lessonId);
+        List<GrammarPoint> grammarPoints = grammarService.findAllByLessonId(lessonId);
 
         request.setAttribute("lesson", lesson);
         request.setAttribute("grammarPoints", grammarPoints);
@@ -109,7 +106,7 @@ public class AdminGrammarPointServlet extends HttpServlet {
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String lessonIdStr = request.getParameter("lessonId");
         if (lessonIdStr != null) {
-            Lesson lesson = lessonRepository.findById(UUID.fromString(lessonIdStr));
+            Lesson lesson = lessonService.findById(UUID.fromString(lessonIdStr));
             request.setAttribute("lesson", lesson);
             request.setAttribute("lessonId", lessonIdStr);
             request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/grammar-point/form.jsp").forward(request, response);
@@ -121,9 +118,9 @@ public class AdminGrammarPointServlet extends HttpServlet {
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idStr = request.getParameter("id");
         if (idStr != null) {
-            GrammarPoint grammarPoint = grammarRepository.findById(UUID.fromString(idStr));
+            GrammarPoint grammarPoint = grammarService.findById(UUID.fromString(idStr));
             if (grammarPoint != null) {
-                Lesson lesson = lessonRepository.findById(grammarPoint.getLessonId());
+                Lesson lesson = lessonService.findById(grammarPoint.getLessonId());
                 request.setAttribute("grammarPoint", grammarPoint);
                 request.setAttribute("lesson", lesson);
                 request.setAttribute("lessonId", grammarPoint.getLessonId().toString());
@@ -164,7 +161,7 @@ public class AdminGrammarPointServlet extends HttpServlet {
         grammarPoint.setExplanation(explanation != null ? explanation.trim() : null);
         grammarPoint.setExample(example != null ? example.trim() : null);
 
-        if (grammarRepository.save(grammarPoint)) {
+        if (grammarService.save(grammarPoint)) {
             response.sendRedirect(request.getContextPath() + "/admin/grammar-points?lessonId=" + lessonIdStr + "&success=created");
         } else {
             request.setAttribute("error", "Không thể tạo điểm ngữ pháp. Vui lòng thử lại.");
@@ -191,14 +188,14 @@ public class AdminGrammarPointServlet extends HttpServlet {
             return;
         }
 
-        GrammarPoint grammarPoint = grammarRepository.findById(UUID.fromString(idStr));
+        GrammarPoint grammarPoint = grammarService.findById(UUID.fromString(idStr));
         if (grammarPoint != null) {
             grammarPoint.setTitle(title.trim());
             grammarPoint.setStructure(structure != null ? structure.trim() : null);
             grammarPoint.setExplanation(explanation != null ? explanation.trim() : null);
             grammarPoint.setExample(example != null ? example.trim() : null);
 
-            if (grammarRepository.update(grammarPoint)) {
+            if (grammarService.update(grammarPoint)) {
                 response.sendRedirect(request.getContextPath() + "/admin/grammar-points?lessonId=" + lessonIdStr + "&success=updated");
             } else {
                 request.setAttribute("error", "Không thể cập nhật điểm ngữ pháp. Vui lòng thử lại.");
@@ -215,7 +212,7 @@ public class AdminGrammarPointServlet extends HttpServlet {
         String idStr = request.getParameter("id");
         String lessonIdStr = request.getParameter("lessonId");
         if (idStr != null) {
-            if (grammarRepository.delete(UUID.fromString(idStr))) {
+            if (grammarService.delete(UUID.fromString(idStr))) {
                 response.sendRedirect(request.getContextPath() + "/admin/grammar-points?lessonId=" + lessonIdStr + "&success=deleted");
             } else {
                 response.sendRedirect(request.getContextPath() + "/admin/grammar-points?lessonId=" + lessonIdStr + "&error=delete_failed");

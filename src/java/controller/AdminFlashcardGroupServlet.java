@@ -7,10 +7,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.FlashcardGroup;
-import model.TargetLevel;
-import model.User;
-import repository.FlashcardGroupRepository;
+import model.*;
+import service.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -25,7 +23,7 @@ import java.util.UUID;
 })
 public class AdminFlashcardGroupServlet extends HttpServlet {
 
-    private final FlashcardGroupRepository groupRepository = new FlashcardGroupRepository();
+    private final FlashcardGroupService groupService = new FlashcardGroupService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -80,7 +78,7 @@ public class AdminFlashcardGroupServlet extends HttpServlet {
     }
 
     private void listGroups(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<FlashcardGroup> groups = groupRepository.findAll();
+        List<FlashcardGroup> groups = groupService.findAll();
         request.setAttribute("groups", groups);
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/flashcard-group/list.jsp").forward(request, response);
     }
@@ -92,7 +90,7 @@ public class AdminFlashcardGroupServlet extends HttpServlet {
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idStr = request.getParameter("id");
         if (idStr != null) {
-            FlashcardGroup group = groupRepository.findById(UUID.fromString(idStr));
+            FlashcardGroup group = groupService.findById(UUID.fromString(idStr));
             request.setAttribute("group", group);
             request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/flashcard-group/form.jsp").forward(request, response);
         } else {
@@ -118,7 +116,7 @@ public class AdminFlashcardGroupServlet extends HttpServlet {
         group.setLevel(TargetLevel.valueOf(levelStr));
         group.setCreatedAt(LocalDateTime.now());
 
-        if (groupRepository.save(group)) {
+        if (groupService.save(group)) {
             response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups?success=created");
         } else {
             request.setAttribute("error", "Failed to create group.");
@@ -138,13 +136,13 @@ public class AdminFlashcardGroupServlet extends HttpServlet {
             return;
         }
 
-        FlashcardGroup group = groupRepository.findById(UUID.fromString(idStr));
+        FlashcardGroup group = groupService.findById(UUID.fromString(idStr));
         if (group != null) {
             group.setName(name);
             group.setDescription(description);
             group.setLevel(TargetLevel.valueOf(levelStr));
 
-            if (groupRepository.update(group)) {
+            if (groupService.update(group)) {
                 response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups?success=updated");
             } else {
                 request.setAttribute("error", "Failed to update group.");
@@ -159,7 +157,7 @@ public class AdminFlashcardGroupServlet extends HttpServlet {
     private void deleteGroup(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String idStr = request.getParameter("id");
         if (idStr != null) {
-            if (groupRepository.delete(UUID.fromString(idStr))) {
+            if (groupService.delete(UUID.fromString(idStr))) {
                 response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups?success=deleted");
             } else {
                 response.sendRedirect(request.getContextPath() + "/admin/flashcard-groups?error=delete_failed");
