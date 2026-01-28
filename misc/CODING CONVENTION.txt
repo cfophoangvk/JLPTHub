@@ -1,0 +1,127 @@
+Coding Style for Project
+1. Đặt chuẩn style của java (LAB211):
+- Tên biến, tên package, tên class, tên field, tên method, tên constant.
+- Loại bỏ import thừa khi không dùng đến.
+- Class PHẢI nằm trong package.
+2. Trong code sau khi hoàn thành thì ko dùng System.out.print mà phải dùng Logger để out ra console.
+3. Trước khi xóa hoặc cập nhật dữ liệu cần có màn hình xác nhận
+4. Các trường nhập liệu cần có kiểm tra - bắt buộc, thiết lập độ dài, định dạng...
+5. Phải format code.
+6. Các package bên phía java:
+- controller
+- service
+- repository
+- model
+- common (chứa các thứ khác như filter, exception, util, constant...)
+7. Sử dụng TailwindCSS và các component giống ShadCN/UI, viết nó ở bên trong các file .tag.
+
+8. Thư mục assets: Chứa các thư mục có chứa static file (như css, js, images, svg).
+Các file svg icon sẽ nằm bên trong folder icon (/assets/icon), là các file .jsp chứa các thẻ <svg> biểu diễn các icon, các icon này copy từ thư viện lucide-react. Lưu ý không cho vào folder WEB-INF để lấy ra cho dễ.
+VD: icon chữ x (x.jsp) có tham số "size" chỉ kích cỡ của icon:
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${not empty param.size ? 'size-' : ''}${param.size}"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+
+Khi import:
+<jsp:include page="/icon/x.jsp">
+     <jsp:param name="size" value="4"/>
+</jsp:include>
+
+9. Các thư mục bên phía JSP (Web Pages): Trừ thư mục assets, còn tất cả phải để bên trong WEB-INF. Các thư mục/file bên trong WEB-INF bao gồm:
+- web.xml (KHÔNG ĐỂ URL SERVLET BÊN TRONG NÀY)
+- jsp (bên trong chứa các folder theo chức năng vd lesson, document... và bên trong mỗi folder đó là các file .jsp). Các file jsp để tên theo camelCase.
+VD:
+/jsp
+    /home
+        index.jsp
+        dashboard.jsp
+    /auth
+        login.jsp
+        register.jsp
+    /lesson
+        listLesson.jsp
+        addLesson.jsp
+        editLesson.jsp
+        viewLessonDetail.jsp
+
+- tags/layout: Chứa file mainLayout.tag: để tạo khung cho giao diện, import css, js... , khai báo style dành riêng cho ShadCN/UI và script config cho tailwind (tailwind.config) cộng với các hàm xử lý chung.
+- tags/ui: Chứa các file .tag để tạo các component giống thư viện ShadCN/UI.
+
+10. Tất cả các class servlet phải kết thúc bằng chữ Servlet. Tất cả các đường dẫn Servlet phải để bên trong class servlet đó, không để trong web.xml. Đường dẫn KHÔNG được để kiểu XXXServlet (vd AuthServlet là sai, auth là đúng.)
+=> Không gọi thẳng trực tiếp file .jsp được, phải đi qua servlet mới được.
+VD xử lý đường dẫn:
+@WebServlet(name = "AuthServlet", urlPatterns = {"/auth/*"})
+public class AuthServlet extends HttpServlet {
+    String pathInfo = request.getServletPath();
+    if ("/login".equals(pathInfo)) {
+                handleLogin(request, response);
+            } else if ("/register".equals(pathInfo)) {
+                handleRegister(request, response);
+            } else if ("/logout".equals(pathInfo)) {
+                handleLogout(request, response);
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+    //code here
+}
+
+11. File DBConnect để ở package common/util:
+import java.sql.*;
+
+public class DBConnect {
+
+    private static Connection con = null;
+
+    static {
+        String url = "jdbc:sqlserver://localhost:1433;databaseName=test";
+        String user = "sa";
+        String pass = "123456";
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            con = DriverManager.getConnection(url, user, pass);
+        } catch (ClassNotFoundException | SQLException e) {
+            System.out.println("error");
+        }
+    }
+
+    public static Connection getConnection() {
+        return con;
+    }
+}
+
+12. Truyền từ controller -> service -> repository. Ví dụ chức năng Auth:
+a. Controller:
+private final AuthService authService = new AuthService();
+b. Service:
+private final UserRepository userRepository = new UserRepository();
+c. Repository:
+private Connection conn = DBConnect.getConnection(); //dùng lớp DBConnect
+
+13. Các thư viện mặc định cần có (áp dụng đối với Ant Project, sau này nếu thêm chức năng gì thì thêm vào):
+- jakarta.servlet.jsp.jstl-2.0.0.jar
+- jakarta.servlet.jsp.jstl-api-2.0.0.jar
+- jaxb-api-2.1.jar
+- sqljdbc42.jar
+
+14. Các class ở trong package model phải là POJO (tức là có constructor rỗng) để khi new object thì có thể setValue từng trường được.
+
+15. Với user chưa đăng nhập -> layout sẽ có header và main content.
+Với user đã đăng nhập -> layout sẽ có sidebar và main content, phía dưới sidebar sẽ là tên và menu chỉnh sửa thông tin cá nhân.
+
+16. Tất cả các file jsp đều phải dùng mainLayout.tag ví dụ như sau:
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="layout" tagdir="/WEB-INF/tags/layout" %>
+
+<layout:mainLayout title="Welcome to My Website">
+    <h2>Welcome to the Home Page!</h2>
+    <p>This is the main content for the page.</p>
+    <ul>
+        <li>Item 1</li>
+        <li>Item 2</li>
+    </ul>
+</layout:mainLayout>
+
+17. Đối với các cấu hình cho API key nên để hết vào file .env. Dùng thư viện Dotenv lấy như sau:
+Dotenv dotenv = Dotenv.configure()
+                      .directory(BaseURL.ENV_DIRECTORY)
+                      .load();
+String apiKey = dotenv.get("API_KEY"); //Lấy giá trị của API_KEY, null nếu không có
+//code here
