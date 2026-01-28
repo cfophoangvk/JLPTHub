@@ -17,7 +17,7 @@ public class FlashcardGroupRepository {
 
     public List<FlashcardGroup> findAll() {
         List<FlashcardGroup> list = new ArrayList<>();
-        String sql = "SELECT * FROM FlashcardGroup";
+        String sql = "SELECT * FROM FlashcardGroup WHERE Status = 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(mapResultSetToFlashcardGroup(rs));
@@ -30,7 +30,7 @@ public class FlashcardGroupRepository {
 
     public List<FlashcardGroup> findByLevel(TargetLevel level) {
         List<FlashcardGroup> list = new ArrayList<>();
-        String sql = "SELECT * FROM FlashcardGroup WHERE Level = ?";
+        String sql = "SELECT * FROM FlashcardGroup WHERE Level = ? AND Status = 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, level.name());
             ResultSet rs = stmt.executeQuery();
@@ -49,7 +49,7 @@ public class FlashcardGroupRepository {
             return list;
         }
 
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM FlashcardGroup WHERE Level IN (");
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM FlashcardGroup WHERE Status = 1 AND Level IN (");
         for (int i = 0; i < levels.size(); i++) {
             sqlBuilder.append("?");
             if (i < levels.size() - 1) {
@@ -73,7 +73,7 @@ public class FlashcardGroupRepository {
     }
 
     public FlashcardGroup findById(UUID id) {
-        String sql = "SELECT * FROM FlashcardGroup WHERE ID = ?";
+        String sql = "SELECT * FROM FlashcardGroup WHERE ID = ? AND Status = 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());
             ResultSet rs = stmt.executeQuery();
@@ -87,7 +87,7 @@ public class FlashcardGroupRepository {
     }
 
     public boolean save(FlashcardGroup group) {
-        String sql = "INSERT INTO FlashcardGroup (ID, Name, Description, Level, CreatedAt) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO FlashcardGroup (ID, Name, Description, Level, CreatedAt, Status) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, group.getId().toString());
             stmt.setString(2, group.getName());
@@ -99,6 +99,7 @@ public class FlashcardGroupRepository {
             } else {
                 stmt.setNull(5, Types.TIMESTAMP);
             }
+            stmt.setBoolean(6, group.isStatus());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -126,8 +127,8 @@ public class FlashcardGroupRepository {
             // Xóa hết các thẻ trong bộ thẻ
             flashcardRepository.deleteAllByGroupId(id);
 
-            // Xong rồi xóa bộ thẻ.
-            String sql = "DELETE FROM FlashcardGroup WHERE ID = ?";
+            // Xong rồi xóa bộ thẻ
+            String sql = "UPDATE FlashcardGroup SET Status = 0 WHERE ID = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, id.toString());
                 return stmt.executeUpdate() > 0;
@@ -149,6 +150,7 @@ public class FlashcardGroupRepository {
         if (createdAt != null) {
             group.setCreatedAt(createdAt.toLocalDateTime());
         }
+        group.setStatus(rs.getBoolean("Status"));
 
         return group;
     }

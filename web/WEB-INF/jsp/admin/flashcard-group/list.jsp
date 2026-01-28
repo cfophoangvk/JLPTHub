@@ -94,7 +94,7 @@
                                 <ui:alertDialogDescription>
                                     <div class="text-center text-muted-foreground">
                                         Bạn có chắc chắn muốn xóa bộ thẻ này?<br />
-                                        (LƯU Ý: Tất cả thẻ bên trong cũng sẽ bị xóa vĩnh viễn.)
+                                        (LƯU Ý: Tất cả thẻ bên trong cũng sẽ bị xóa.)
                                     </div>
                                 </ui:alertDialogDescription>
                             </ui:alertDialogHeader>

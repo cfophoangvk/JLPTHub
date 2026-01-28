@@ -16,7 +16,7 @@ public class LessonGroupRepository {
 
     public List<LessonGroup> findAll() {
         List<LessonGroup> list = new ArrayList<>();
-        String sql = "SELECT * FROM LessonGroup ORDER BY Level, OrderIndex";
+        String sql = "SELECT * FROM LessonGroup WHERE Status = 1 ORDER BY Level, OrderIndex";
         try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(mapResultSetToLessonGroup(rs));
@@ -29,7 +29,7 @@ public class LessonGroupRepository {
 
     public List<LessonGroup> findByLevel(TargetLevel level) {
         List<LessonGroup> list = new ArrayList<>();
-        String sql = "SELECT * FROM LessonGroup WHERE Level = ? ORDER BY OrderIndex";
+        String sql = "SELECT * FROM LessonGroup WHERE Level = ? AND Status = 1 ORDER BY OrderIndex";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, level.name());
             ResultSet rs = stmt.executeQuery();
@@ -53,7 +53,7 @@ public class LessonGroupRepository {
             placeholders.append(i > 0 ? ", ?" : "?");
         }
 
-        String sql = "SELECT * FROM LessonGroup WHERE Level IN (" + placeholders + ") ORDER BY Level, OrderIndex";
+        String sql = "SELECT * FROM LessonGroup WHERE Status = 1 AND Level IN (" + placeholders + ") ORDER BY Level, OrderIndex";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (int i = 0; i < levels.size(); i++) {
                 stmt.setString(i + 1, levels.get(i).name());
@@ -69,7 +69,7 @@ public class LessonGroupRepository {
     }
 
     public LessonGroup findById(UUID id) {
-        String sql = "SELECT * FROM LessonGroup WHERE ID = ?";
+        String sql = "SELECT * FROM LessonGroup WHERE ID = ? AND Status = 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());
             ResultSet rs = stmt.executeQuery();
@@ -83,12 +83,13 @@ public class LessonGroupRepository {
     }
 
     public boolean save(LessonGroup group) {
-        String sql = "INSERT INTO LessonGroup (ID, Name, Level, OrderIndex) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO LessonGroup (ID, Name, Level, OrderIndex, Status) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, group.getId().toString());
             stmt.setString(2, group.getName());
             stmt.setString(3, group.getLevel().name());
             stmt.setInt(4, group.getOrderIndex());
+            stmt.setBoolean(5, group.isStatus());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(LessonGroupRepository.class.getName(), "save", "Error saving lesson group: " + e.getMessage());
@@ -110,9 +111,8 @@ public class LessonGroupRepository {
         return false;
     }
 
-    //tạm thời xóa cứng, sẽ thêm trường Status sau
     public boolean delete(UUID id) {
-        String sql = "DELETE FROM LessonGroup WHERE ID = ?";
+        String sql = "UPDATE LessonGroup SET Status = 0 WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());
             return stmt.executeUpdate() > 0;
@@ -128,6 +128,7 @@ public class LessonGroupRepository {
         group.setName(rs.getString("Name"));
         group.setLevel(TargetLevel.valueOf(rs.getString("Level")));
         group.setOrderIndex(rs.getInt("OrderIndex"));
+        group.setStatus(rs.getBoolean("Status"));
         return group;
     }
 }

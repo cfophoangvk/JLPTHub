@@ -54,6 +54,7 @@
                                         <ui:th>Thuật ngữ</ui:th>
                                         <ui:th>Định nghĩa</ui:th>
                                         <ui:th>Ảnh thuật ngữ</ui:th>
+                                        <ui:th>Thứ tự</ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
                                     </tr>
                                 </thead>
@@ -71,6 +72,7 @@
                                                     <span class="text-gray-400 text-xs">Không có hình ảnh</span>
                                                 </c:if>
                                             </ui:td>
+                                            <ui:td>${card.orderIndex}</ui:td>
                                             <ui:td
                                                 className="text-center flex justify-center items-center space-x-2 mx-auto">
                                                 <ui:button size="icon"

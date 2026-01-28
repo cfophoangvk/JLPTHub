@@ -18,7 +18,7 @@ public class FlashcardRepository {
 
     public List<Flashcard> findAllByGroupId(UUID groupId) {
         List<Flashcard> list = new ArrayList<>();
-        String sql = "SELECT * FROM Flashcard WHERE GroupId = ?";
+        String sql = "SELECT * FROM Flashcard WHERE GroupId = ? AND Status = 1 ORDER BY OrderIndex ASC";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, groupId.toString());
             ResultSet rs = stmt.executeQuery();
@@ -32,7 +32,7 @@ public class FlashcardRepository {
     }
 
     public Flashcard findById(UUID id) {
-        String sql = "SELECT * FROM Flashcard WHERE ID = ?";
+        String sql = "SELECT * FROM Flashcard WHERE ID = ? AND Status = 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());
             ResultSet rs = stmt.executeQuery();
@@ -46,7 +46,7 @@ public class FlashcardRepository {
     }
 
     public boolean save(Flashcard flashcard) {
-        String sql = "INSERT INTO Flashcard (ID, GroupId, Term, Definition, TermImageUrl, DefinitionImageUrl) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Flashcard (ID, GroupId, Term, Definition, TermImageUrl, DefinitionImageUrl, OrderIndex, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, flashcard.getId().toString());
             stmt.setString(2, flashcard.getGroupId().toString());
@@ -54,6 +54,8 @@ public class FlashcardRepository {
             stmt.setString(4, flashcard.getDefinition());
             stmt.setString(5, flashcard.getTermImageUrl());
             stmt.setString(6, flashcard.getDefinitionImageUrl());
+            stmt.setInt(7, flashcard.getOrderIndex());
+            stmt.setBoolean(8, flashcard.isStatus());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(FlashcardRepository.class.getName(), "save", "Error saving flashcard: " + e.getMessage());
@@ -62,14 +64,15 @@ public class FlashcardRepository {
     }
 
     public boolean update(Flashcard flashcard) {
-        String sql = "UPDATE Flashcard SETGroupId = ?, Term = ?, Definition = ?, TermImageUrl = ?, DefinitionImageUrl = ? WHERE ID = ?";
+        String sql = "UPDATE Flashcard SET GroupId = ?, Term = ?, Definition = ?, TermImageUrl = ?, DefinitionImageUrl = ?, OrderIndex = ? WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, flashcard.getGroupId().toString());
             stmt.setString(2, flashcard.getTerm());
             stmt.setString(3, flashcard.getDefinition());
             stmt.setString(4, flashcard.getTermImageUrl());
             stmt.setString(5, flashcard.getDefinitionImageUrl());
-            stmt.setString(6, flashcard.getId().toString());
+            stmt.setInt(6, flashcard.getOrderIndex());
+            stmt.setString(7, flashcard.getId().toString());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(FlashcardRepository.class.getName(), "update", "Error updating flashcard: " + e.getMessage());
@@ -77,9 +80,8 @@ public class FlashcardRepository {
         return false;
     }
 
-    //tạm thời xóa cứng, sẽ thêm trường Status sau
     public boolean delete(UUID id) {
-        String sql = "DELETE FROM Flashcard WHERE ID = ?";
+        String sql = "UPDATE Flashcard SET Status = 0 WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());
             return stmt.executeUpdate() > 0;
@@ -90,7 +92,7 @@ public class FlashcardRepository {
     }
 
     public boolean deleteAllByGroupId(UUID groupId) {
-        String sql = "DELETE FROM Flashcard WHERE GroupId = ?";
+        String sql = "UPDATE Flashcard SET Status = 0 WHERE GroupId = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, groupId.toString());
             return stmt.executeUpdate() >= 0;
@@ -108,6 +110,8 @@ public class FlashcardRepository {
         flashcard.setDefinition(rs.getString("Definition"));
         flashcard.setTermImageUrl(rs.getString("TermImageUrl"));
         flashcard.setDefinitionImageUrl(rs.getString("DefinitionImageUrl"));
+        flashcard.setOrderIndex(rs.getInt("OrderIndex"));
+        flashcard.setStatus(rs.getBoolean("Status"));
         return flashcard;
     }
 }

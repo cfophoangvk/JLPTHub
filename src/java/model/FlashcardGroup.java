@@ -9,16 +9,18 @@ public class FlashcardGroup {
     private String description;
     private TargetLevel level;
     private LocalDateTime createdAt;
+    private boolean status;
 
     public FlashcardGroup() {
     }
 
-    public FlashcardGroup(UUID id, String name, String description, TargetLevel level, LocalDateTime createdAt) {
+    public FlashcardGroup(UUID id, String name, String description, TargetLevel level, LocalDateTime createdAt, boolean status) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.level = level;
         this.createdAt = createdAt;
+        this.status = status;
     }
 
     public UUID getId() {
@@ -59,5 +61,13 @@ public class FlashcardGroup {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+    
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

@@ -59,6 +59,13 @@
                                 <input type="file" name="definitionImage" id="definitionImage" accept="image/*"
                                     class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                             </div>
+                                
+                            <div class="mb-6">
+                                <ui:label label="Thứ tự hiển thị" htmlFor="orderIndex" />
+                                <ui:input id="orderIndex" name="orderIndex" type="number"
+                                    value="${not empty flashcard.orderIndex ? flashcard.orderIndex : 0}"
+                                    placeholder="Nhập thứ tự (số)..." />
+                            </div>
 
                             <div class="flex items-center justify-end space-x-3">
                                 <ui:button variant="secondary"
@@ -66,7 +73,7 @@
                                     Hủy
                                 </ui:button>
                                 <ui:button onclick="doValidation()">
-                                    ${not empty group ? 'Cập nhật' : 'Thêm'}
+                                    ${not empty flashcard ? 'Cập nhật' : 'Thêm'}
                                 </ui:button>
                             </div>
                         </form>
@@ -106,11 +113,19 @@
                             } else
                                 return "";
                         };
+                        
+                        const orderIndexValidation = (value) => {
+                            if (value !== "" && isNaN(parseInt(value))) {
+                                return "Thứ tự phải là số!";
+                            }
+                            return "";
+                        };
 
                         const doValidation = () => {
                             let isValid = true;
                             isValid &= validateInput('term', termValidation);
                             isValid &= validateInput('definition', definitionValidation);
+                            isValid &= validateInput('orderIndex', orderIndexValidation);
 
                             if (isValid) {
                                 openDialog('alert-flashcard');

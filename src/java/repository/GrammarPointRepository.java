@@ -15,7 +15,7 @@ public class GrammarPointRepository {
 
     public List<GrammarPoint> findAllByLessonId(UUID lessonId) {
         List<GrammarPoint> list = new ArrayList<>();
-        String sql = "SELECT * FROM GrammarPoint WHERE LessonId = ?";
+        String sql = "SELECT * FROM GrammarPoint WHERE LessonId = ? AND Status = 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, lessonId.toString());
             ResultSet rs = stmt.executeQuery();
@@ -29,7 +29,7 @@ public class GrammarPointRepository {
     }
 
     public GrammarPoint findById(UUID id) {
-        String sql = "SELECT * FROM GrammarPoint WHERE ID = ?";
+        String sql = "SELECT * FROM GrammarPoint WHERE ID = ? AND Status = 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());
             ResultSet rs = stmt.executeQuery();
@@ -43,7 +43,7 @@ public class GrammarPointRepository {
     }
 
     public boolean save(GrammarPoint grammarPoint) {
-        String sql = "INSERT INTO GrammarPoint (ID, LessonId, Title, Structure, Explanation, Example) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO GrammarPoint (ID, LessonId, Title, Structure, Explanation, Example, Status) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, grammarPoint.getId().toString());
             stmt.setString(2, grammarPoint.getLessonId().toString());
@@ -51,6 +51,7 @@ public class GrammarPointRepository {
             stmt.setString(4, grammarPoint.getStructure());
             stmt.setString(5, grammarPoint.getExplanation());
             stmt.setString(6, grammarPoint.getExample());
+            stmt.setBoolean(7, grammarPoint.isStatus());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(GrammarPointRepository.class.getName(), "save", "Error saving grammar point: " + e.getMessage());
@@ -73,9 +74,8 @@ public class GrammarPointRepository {
         return false;
     }
 
-    //tạm thời xóa cứng, sẽ thêm trường Status sau
     public boolean delete(UUID id) {
-        String sql = "DELETE FROM GrammarPoint WHERE ID = ?";
+        String sql = "UPDATE GrammarPoint SET Status = 0 WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());
             return stmt.executeUpdate() > 0;
@@ -86,7 +86,7 @@ public class GrammarPointRepository {
     }
 
     public boolean deleteAllByLessonId(UUID lessonId) {
-        String sql = "DELETE FROM GrammarPoint WHERE LessonId = ?";
+        String sql = "UPDATE GrammarPoint SET Status = 0 WHERE LessonId = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, lessonId.toString());
             return stmt.executeUpdate() >= 0;
@@ -104,6 +104,7 @@ public class GrammarPointRepository {
         grammarPoint.setStructure(rs.getString("Structure"));
         grammarPoint.setExplanation(rs.getString("Explanation"));
         grammarPoint.setExample(rs.getString("Example"));
+        grammarPoint.setStatus(rs.getBoolean("Status"));
         return grammarPoint;
     }
 }

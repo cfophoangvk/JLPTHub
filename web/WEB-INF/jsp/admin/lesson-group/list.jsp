@@ -119,7 +119,7 @@
                                     <div class="text-center text-muted-foreground">
                                         Bạn có chắc chắn muốn xóa nhóm bài học này?<br />
                                         <span class="text-red-600 font-semibold">(LƯU Ý: Tất cả bài học và điểm ngữ pháp
-                                            bên trong cũng sẽ bị xóa vĩnh viễn.)</span>
+                                            bên trong cũng sẽ bị xóa.)</span>
                                     </div>
                                 </ui:alertDialogDescription>
                             </ui:alertDialogHeader>

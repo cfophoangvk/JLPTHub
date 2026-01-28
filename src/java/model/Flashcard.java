@@ -9,17 +9,21 @@ public class Flashcard {
     private String definition;
     private String termImageUrl;
     private String definitionImageUrl;
+    private int orderIndex;
+    private boolean status;
 
     public Flashcard() {
     }
 
-    public Flashcard(UUID id, UUID groupId, String term, String definition, String termImageUrl, String definitionImageUrl) {
+    public Flashcard(UUID id, UUID groupId, String term, String definition, String termImageUrl, String definitionImageUrl, int orderIndex, boolean status) {
         this.id = id;
         this.groupId = groupId;
         this.term = term;
         this.definition = definition;
         this.termImageUrl = termImageUrl;
         this.definitionImageUrl = definitionImageUrl;
+        this.orderIndex = orderIndex;
+        this.status = status;
     }
 
     public UUID getId() {
@@ -68,5 +72,21 @@ public class Flashcard {
 
     public void setDefinitionImageUrl(String definitionImageUrl) {
         this.definitionImageUrl = definitionImageUrl;
+    }
+
+    public int getOrderIndex() {
+        return orderIndex;
+    }
+
+    public void setOrderIndex(int orderIndex) {
+        this.orderIndex = orderIndex;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

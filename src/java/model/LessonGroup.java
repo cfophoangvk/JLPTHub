@@ -7,15 +7,17 @@ public class LessonGroup {
     private String name;
     private TargetLevel level;
     private int orderIndex;
+    private boolean status;
 
     public LessonGroup() {
     }
 
-    public LessonGroup(UUID id, String name, TargetLevel level, int orderIndex) {
+    public LessonGroup(UUID id, String name, TargetLevel level, int orderIndex, boolean status) {
         this.id = id;
         this.name = name;
         this.level = level;
         this.orderIndex = orderIndex;
+        this.status = status;
     }
 
     public UUID getId() {
@@ -48,5 +50,13 @@ public class LessonGroup {
 
     public void setOrderIndex(int orderIndex) {
         this.orderIndex = orderIndex;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

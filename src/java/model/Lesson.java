@@ -10,11 +10,12 @@ public class Lesson {
     private String audioUrl;
     private String contentHtml;
     private int orderIndex;
+    private boolean status;
 
     public Lesson() {
     }
 
-    public Lesson(UUID id, UUID groupId, String title, String description, String audioUrl, String contentHtml, int orderIndex) {
+    public Lesson(UUID id, UUID groupId, String title, String description, String audioUrl, String contentHtml, int orderIndex, boolean status) {
         this.id = id;
         this.groupId = groupId;
         this.title = title;
@@ -22,6 +23,7 @@ public class Lesson {
         this.audioUrl = audioUrl;
         this.contentHtml = contentHtml;
         this.orderIndex = orderIndex;
+        this.status = status;
     }
 
     public UUID getId() {
@@ -78,5 +80,13 @@ public class Lesson {
 
     public void setOrderIndex(int orderIndex) {
         this.orderIndex = orderIndex;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

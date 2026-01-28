@@ -124,14 +124,27 @@ public class AdminFlashcardServlet extends HttpServlet {
         String groupIdStr = request.getParameter("groupId");
         String term = request.getParameter("term");
         String definition = request.getParameter("definition");
+        String orderIndexStr = request.getParameter("orderIndex");
         Part termImagePart = request.getPart("termImage");
         Part definitionImagePart = request.getPart("definitionImage");
 
         if (groupIdStr == null || term == null || term.isEmpty() || definition == null || definition.isEmpty()) {
-            request.setAttribute("error", "Group, Term and Definition are required.");
+            request.setAttribute("error", "Vui lòng điền vào các trường bắt buộc.");
             request.setAttribute("groupId", groupIdStr);
             showCreateForm(request, response);
             return;
+        }
+
+        int orderIndex = 0;
+        if (orderIndexStr != null && !orderIndexStr.isEmpty()) {
+            try {
+                orderIndex = Integer.parseInt(orderIndexStr);
+            } catch (NumberFormatException e) {
+                request.setAttribute("error", "Thứ tự phải là số.");
+                request.setAttribute("groupId", groupIdStr);
+                showCreateForm(request, response);
+                return;
+            }
         }
 
         String termImageUrl = cloudinaryService.uploadImage(termImagePart);
@@ -144,12 +157,12 @@ public class AdminFlashcardServlet extends HttpServlet {
         flashcard.setDefinition(definition);
         flashcard.setTermImageUrl(termImageUrl);
         flashcard.setDefinitionImageUrl(definitionImageUrl);
+        flashcard.setOrderIndex(orderIndex);
 
         if (flashcardService.save(flashcard)) {
             response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&success=created");
         } else {
-            request.setAttribute("error", "Failed to create flashcard.");
-            request.setAttribute("groupId", groupIdStr);
+            request.setAttribute("error", "Tạo thẻ thất bại.");
             showCreateForm(request, response);
         }
     }
@@ -159,13 +172,14 @@ public class AdminFlashcardServlet extends HttpServlet {
         String groupIdStr = request.getParameter("groupId");
         String term = request.getParameter("term");
         String definition = request.getParameter("definition");
+        String orderIndexStr = request.getParameter("orderIndex");
         Part termImagePart = request.getPart("termImage");
         Part definitionImagePart = request.getPart("definitionImage");
         String existingTermImage = request.getParameter("existingTermImage");
         String existingDefinitionImage = request.getParameter("existingDefinitionImage");
 
         if (idStr == null || term == null || term.isEmpty() || definition == null || definition.isEmpty()) {
-            request.setAttribute("error", "Invalid data.");
+            request.setAttribute("error", "Dữ liệu không hợp lệ.");
             if (groupIdStr != null) {
                 listFlashcards(request, response);
             } else {
@@ -174,10 +188,22 @@ public class AdminFlashcardServlet extends HttpServlet {
             return;
         }
 
+        int orderIndex = 0;
+        if (orderIndexStr != null && !orderIndexStr.isEmpty()) {
+            try {
+                orderIndex = Integer.parseInt(orderIndexStr);
+            } catch (NumberFormatException e) {
+                request.setAttribute("error", "Thứ tự phải là số.");
+                showEditForm(request, response);
+                return;
+            }
+        }
+
         Flashcard flashcard = flashcardService.findById(UUID.fromString(idStr));
         if (flashcard != null) {
             flashcard.setTerm(term);
             flashcard.setDefinition(definition);
+            flashcard.setOrderIndex(orderIndex);
 
             String termImageUrl = cloudinaryService.uploadImage(termImagePart);
             if (termImageUrl != null) {
@@ -196,7 +222,7 @@ public class AdminFlashcardServlet extends HttpServlet {
             if (flashcardService.update(flashcard)) {
                 response.sendRedirect(request.getContextPath() + "/admin/flashcards?groupId=" + groupIdStr + "&success=updated");
             } else {
-                request.setAttribute("error", "Failed to update flashcard.");
+                request.setAttribute("error", "Cập nhật bộ thẻ thất bại.");
                 request.setAttribute("flashcard", flashcard);
                 showEditForm(request, response);
             }

@@ -15,7 +15,7 @@ public class LessonRepository {
 
     public List<Lesson> findAllByGroupId(UUID groupId) {
         List<Lesson> list = new ArrayList<>();
-        String sql = "SELECT * FROM Lesson WHERE GroupId = ? ORDER BY OrderIndex";
+        String sql = "SELECT * FROM Lesson WHERE GroupId = ? AND Status = 1 ORDER BY OrderIndex";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, groupId.toString());
             ResultSet rs = stmt.executeQuery();
@@ -29,7 +29,7 @@ public class LessonRepository {
     }
 
     public int countByGroupId(UUID groupId) {
-        String sql = "SELECT COUNT(*) FROM Lesson WHERE GroupId = ?";
+        String sql = "SELECT COUNT(*) FROM Lesson WHERE GroupId = ? AND Status = 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, groupId.toString());
             ResultSet rs = stmt.executeQuery();
@@ -43,7 +43,7 @@ public class LessonRepository {
     }
 
     public Lesson findById(UUID id) {
-        String sql = "SELECT * FROM Lesson WHERE ID = ?";
+        String sql = "SELECT * FROM Lesson WHERE ID = ? AND Status = 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());
             ResultSet rs = stmt.executeQuery();
@@ -57,7 +57,7 @@ public class LessonRepository {
     }
 
     public boolean save(Lesson lesson) {
-        String sql = "INSERT INTO Lesson (ID, GroupId, Title, Description, AudioUrl, ContentHtml, OrderIndex) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Lesson (ID, GroupId, Title, Description, AudioUrl, ContentHtml, OrderIndex, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, lesson.getId().toString());
             stmt.setString(2, lesson.getGroupId().toString());
@@ -66,6 +66,7 @@ public class LessonRepository {
             stmt.setString(5, lesson.getAudioUrl());
             stmt.setString(6, lesson.getContentHtml());
             stmt.setInt(7, lesson.getOrderIndex());
+            stmt.setBoolean(8, lesson.isStatus());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(LessonRepository.class.getName(), "save", "Error saving lesson: " + e.getMessage());
@@ -89,9 +90,8 @@ public class LessonRepository {
         return false;
     }
 
-    //tạm thời xóa cứng, sẽ thêm trường Status sau
     public boolean delete(UUID id) {
-        String sql = "DELETE FROM Lesson WHERE ID = ?";
+        String sql = "UPDATE Lesson SET Status = 0 WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, id.toString());
             return stmt.executeUpdate() > 0;
@@ -102,7 +102,7 @@ public class LessonRepository {
     }
 
     public boolean deleteAllByGroupId(UUID groupId) {
-        String sql = "DELETE FROM Lesson WHERE GroupId = ?";
+        String sql = "UPDATE Lesson SET Status = 0 WHERE GroupId = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, groupId.toString());
             return stmt.executeUpdate() >= 0;
@@ -121,6 +121,7 @@ public class LessonRepository {
         lesson.setAudioUrl(rs.getString("AudioUrl"));
         lesson.setContentHtml(rs.getString("ContentHtml"));
         lesson.setOrderIndex(rs.getInt("OrderIndex"));
+        lesson.setStatus(rs.getBoolean("Status"));
         return lesson;
     }
 }

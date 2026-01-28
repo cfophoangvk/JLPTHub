@@ -9,11 +9,12 @@ public class GrammarPoint {
     private String structure;
     private String explanation;
     private String example;
+    private boolean status;
 
     public GrammarPoint() {
     }
 
-    public GrammarPoint(UUID id, UUID lessonId, String title, String structure, String explanation, String example) {
+    public GrammarPoint(UUID id, UUID lessonId, String title, String structure, String explanation, String example, boolean status) {
         this.id = id;
         this.lessonId = lessonId;
         this.title = title;
@@ -68,5 +69,13 @@ public class GrammarPoint {
 
     public void setExample(String example) {
         this.example = example;
+    }
+    
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }
