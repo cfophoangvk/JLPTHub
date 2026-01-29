@@ -6,9 +6,7 @@ nbactions.xml
 nb-configuration.xml
 /build/
 *.class
-*.jar
 *.war
-*.ear
 /target/
 .DS_Store
 Thumbs.db
