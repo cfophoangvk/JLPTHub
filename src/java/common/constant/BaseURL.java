@@ -6,4 +6,5 @@ public class BaseURL {
     
     public static final String CLOUDINARY_FLASHCARD_FOLDER = "/Flashcards";
     public static final String CLOUDINARY_LESSON_FOLDER = "/Lessons";
+    public static final String CLOUDINARY_TEST_FOLDER = "/Tests";
 }

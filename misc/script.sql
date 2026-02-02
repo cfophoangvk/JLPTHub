@@ -103,6 +103,7 @@ CREATE TABLE Test (
     Title nvarchar(150) NOT NULL,
     Level char(2) NOT NULL,
     CreatedAt datetime DEFAULT GETDATE(),
+    Status BIT NOT NULL DEFAULT 1,
     CHECK (Level IN ('N5', 'N4', 'N3', 'N2', 'N1'))
 );
 
@@ -114,6 +115,7 @@ CREATE TABLE TestSection (
     SectionType nvarchar(10) NOT NULL,
     PassScore int NOT NULL,
     TotalScore int NOT NULL DEFAULT 180,
+    Status BIT NOT NULL DEFAULT 1,
     CONSTRAINT FK_TestSection_Test FOREIGN KEY (TestId) REFERENCES Test(ID) ON DELETE CASCADE,
     CHECK (SectionType IN ('Moji/Goi', 'Bunpou', 'Choukai'))
 );

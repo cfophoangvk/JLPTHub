@@ -199,6 +199,7 @@
 
             function selectOption (triggerId, value, label) {
                 const input = document.getElementById(triggerId);
+                const initialValue = input.value;
                 input.value = value;
 
                 const display = document.getElementById(triggerId + '-value');
@@ -209,6 +210,16 @@
 
                 const trigger = document.getElementById(triggerId + "-trigger");
                 trigger.setAttribute('aria-expanded', 'false');
+
+                const root = document.getElementById(triggerId + '-root');
+                const callbackName = root.getAttribute('data-on-change');
+
+                if (callbackName && initialValue !== value) {
+                    const callback = window[callbackName];
+                    if (typeof callback === 'function') {
+                        callback(value);
+                    }
+                }
             }
 
             document.addEventListener('click', function (event) {
@@ -399,6 +410,14 @@
                                 <i class="fa-solid fa-graduation-cap text-rose-500"></i>
                                 <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
                                     Quản lý bài học
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="${pageContext.request.contextPath}/admin/tests" class="sidebar-link flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
+                                <i class="fa-solid fa-list-check text-rose-500"></i>
+                                <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
+                                    Quản lý bài thi
                                 </span>
                             </a>
                         </li>
