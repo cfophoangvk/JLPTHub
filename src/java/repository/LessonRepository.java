@@ -66,7 +66,7 @@ public class LessonRepository {
             stmt.setString(5, lesson.getAudioUrl());
             stmt.setString(6, lesson.getContentHtml());
             stmt.setInt(7, lesson.getOrderIndex());
-            stmt.setBoolean(8, lesson.isStatus());
+            stmt.setBoolean(8, true);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(LessonRepository.class.getName(), "save", "Error saving lesson: " + e.getMessage());

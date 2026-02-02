@@ -55,7 +55,7 @@ public class FlashcardRepository {
             stmt.setString(5, flashcard.getTermImageUrl());
             stmt.setString(6, flashcard.getDefinitionImageUrl());
             stmt.setInt(7, flashcard.getOrderIndex());
-            stmt.setBoolean(8, flashcard.isStatus());
+            stmt.setBoolean(8, true);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(FlashcardRepository.class.getName(), "save", "Error saving flashcard: " + e.getMessage());

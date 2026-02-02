@@ -50,7 +50,7 @@ public class TestSectionRepository {
             stmt.setString(4, section.getSectionType());
             stmt.setInt(5, section.getPassScore());
             stmt.setInt(6, section.getTotalScore());
-            stmt.setBoolean(7, section.isStatus());
+            stmt.setBoolean(7, true);
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
                 ResultSet generatedKeys = stmt.getGeneratedKeys();

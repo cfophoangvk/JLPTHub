@@ -89,7 +89,7 @@ public class LessonGroupRepository {
             stmt.setString(2, group.getName());
             stmt.setString(3, group.getLevel().name());
             stmt.setInt(4, group.getOrderIndex());
-            stmt.setBoolean(5, group.isStatus());
+            stmt.setBoolean(5, true);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(LessonGroupRepository.class.getName(), "save", "Error saving lesson group: " + e.getMessage());

@@ -85,11 +85,11 @@
                                 </c:if>
                                 <div class="mt-1 flex items-center">
                                     <input type="file" id="audio" name="audio" accept="audio/*" class="block w-full text-sm text-gray-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-md file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-blue-50 file:text-blue-700
-                            hover:file:bg-blue-100" onchange="validateAudioFile(this)" />
+                                        file:mr-4 file:py-2 file:px-4
+                                        file:rounded-md file:border-0
+                                        file:text-sm file:font-semibold
+                                        file:bg-blue-50 file:text-blue-700
+                                        hover:file:bg-blue-100" onchange="validateAudioFile(this)" />
                                 </div>
                                 <p class="mt-1 text-sm text-gray-500">Định dạng: MP3, WAV, OGG. Tối đa: 100MB</p>
                                 <p id="audioError" class="mt-1 text-sm text-red-600 hidden"></p>
@@ -97,8 +97,8 @@
 
                             <div class="mb-4">
                                 <ui:label label="Nội dung HTML (Bài đọc/Ngữ pháp)" htmlFor="contentHtml" />
-                                <ui:textarea id="contentHtml" name="contentHtml" rows="10"
-                                    placeholder="Nhập nội dung HTML cho bài học...">${lesson.contentHtml}</ui:textarea>
+                                <input type="hidden" id="contentHtml" name="contentHtml" value="${lesson.contentHtml}">
+                                <div id="contentHtmlEditor">${lesson.contentHtml}</div>
                             </div>
 
                             <div class="mb-6">
@@ -138,6 +138,23 @@
                     </ui:alertDialog>
 
                     <script>
+                        const quill = new Quill('#contentHtmlEditor', {
+                            theme: 'snow',
+                            placeholder: 'Nhập nội dung HTML cho bài học...',
+                            modules: {
+                                toolbar: [
+                                    [{'header': [1, 2, 3, false]}],
+                                    ['bold', 'italic', 'underline', 'strike', 'blockquote', 'code'],
+                                    [{'list': 'ordered'}, {'list': 'bullet'}, {'list': 'check'}],
+                                    [{'indent': '-1'}, {'indent': '+1'}],
+                                    ['link', 'image'],
+                                    [{'color': []}, {'background': []}, {'font': []}, {'align': []}]
+                                ]
+                            }
+                        });
+                        
+                        document.querySelector(".ql-editor").style.height = '200px';
+                        
                         // Maximum file size: 100MB
                         const MAX_AUDIO_SIZE = 100 * 1024 * 1024;
                         let audioFileValid = true;
@@ -181,8 +198,11 @@
                             let isValid = true;
                             isValid &= validateInput('title', titleValidation);
                             isValid &= validateInput('orderIndex', orderIndexValidation);
+                            
+                            if (quill.getText().trim() !== "") {
+                                document.getElementById("contentHtml").value = quill.root.innerHTML;
+                            }
 
-                            // Check audio file validation
                             if (!audioFileValid) {
                                 isValid = false;
                             }

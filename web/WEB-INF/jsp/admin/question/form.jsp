@@ -79,7 +79,7 @@
                             </div>
 
                             <div class="mb-4">
-                                <ui:label label="Hình ảnh" htmlFor="image" />
+                                <ui:label label="Hình ảnh câu hỏi (Định dạng: JPG, PNG, GIF. Tối đa: 10MB)" htmlFor="image" />
                                 <c:if test="${not empty question.imageUrl}">
                                     <div class="mb-2 p-3 bg-gray-50 rounded-lg">
                                         <p class="text-sm text-gray-600 mb-2">Hình ảnh hiện tại:</p>
@@ -89,13 +89,12 @@
                                 </c:if>
                                 <div class="mt-1 flex items-center">
                                     <input type="file" id="image" name="image" accept="image/*" class="block w-full text-sm text-gray-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-md file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-blue-50 file:text-blue-700
-                            hover:file:bg-blue-100" />
+                                        file:mr-4 file:py-2 file:px-4
+                                        file:rounded-md file:border-0
+                                        file:text-sm file:font-semibold
+                                        file:bg-blue-50 file:text-blue-700
+                                        hover:file:bg-blue-100" />
                                 </div>
-                                <p class="mt-1 text-sm text-gray-500">Định dạng: JPG, PNG, GIF. Tối đa: 10MB</p>
                             </div>
 
                             <div class="flex items-center justify-end space-x-3">

@@ -62,7 +62,7 @@ public class TestRepository {
             stmt.setString(1, test.getTitle());
             stmt.setString(2, test.getLevel().name());
             stmt.setTimestamp(3, Timestamp.valueOf(test.getCreatedAt()));
-            stmt.setBoolean(4, test.isStatus());
+            stmt.setBoolean(4, true);
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
                 ResultSet generatedKeys = stmt.getGeneratedKeys();

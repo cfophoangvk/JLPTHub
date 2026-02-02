@@ -56,7 +56,7 @@
                                         </div>
                                     </c:if>
 
-                                    <form action="/JLPTHub/user/profile" method="post">
+                                    <form action="/JLPTHub/user/profile" method="post" id="userProfileForm">
                                         <input type="hidden" name="id" value="${currentUser.id}" />
                                         <div class="grid grid-cols-1 gap-6">
                                             <div>
@@ -81,7 +81,7 @@
                                             </div>
 
                                             <div class="flex justify-end pt-4">
-                                                <ui:button type="submit" className="w-full sm:w-auto">
+                                                <ui:button onclick="doValidation()" className="w-full sm:w-auto">
                                                     Lưu thay đổi
                                                 </ui:button>
                                             </div>
@@ -91,4 +91,21 @@
                             </div>
                         </div>
                     </div>
+                    <script>
+                        const fullNameValidation = (value) => {
+                            if (!value) {
+                                return "Vui lòng điền họ và tên!";
+                            }
+                            return "";
+                        };
+                        
+                        const doValidation = () => {
+                            let isValid = true;
+                            isValid &= validateInput('fullName', fullNameValidation);
+                            
+                            if (isValid) {
+                                submitForm("userProfileForm");
+                            }
+                        };
+                    </script>
                 </layout:mainLayout>

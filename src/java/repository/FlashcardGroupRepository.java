@@ -99,7 +99,7 @@ public class FlashcardGroupRepository {
             } else {
                 stmt.setNull(5, Types.TIMESTAMP);
             }
-            stmt.setBoolean(6, group.isStatus());
+            stmt.setBoolean(6, true);
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {

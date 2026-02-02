@@ -51,7 +51,7 @@ public class GrammarPointRepository {
             stmt.setString(4, grammarPoint.getStructure());
             stmt.setString(5, grammarPoint.getExplanation());
             stmt.setString(6, grammarPoint.getExample());
-            stmt.setBoolean(7, grammarPoint.isStatus());
+            stmt.setBoolean(7, true);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(GrammarPointRepository.class.getName(), "save", "Error saving grammar point: " + e.getMessage());
