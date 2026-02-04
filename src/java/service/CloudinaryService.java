@@ -38,7 +38,7 @@ public class CloudinaryService {
     }
 
     //Upload hình ảnh lên cloud
-    public String uploadImage(Part filePart) {
+    public String uploadImage(Part filePart, String folder) {
         if (filePart == null || filePart.getSize() == 0) {
             return null;
         }
@@ -47,7 +47,7 @@ public class CloudinaryService {
         try {
             file = convertPartToFile(filePart);
             Map<String, Object> uploadParams = ObjectUtils.asMap(
-                    "folder", BaseURL.CLOUDINARY_FLASHCARD_FOLDER
+                    "folder", folder
             );
             Map uploadResult = cloudinary.uploader().upload(file, uploadParams);
             return (String) uploadResult.get("secure_url");

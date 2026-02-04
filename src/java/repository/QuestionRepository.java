@@ -42,7 +42,7 @@ public class QuestionRepository {
         return null;
     }
 
-    public boolean save(Question question) {
+    public int save(Question question) {
         String sql = "INSERT INTO Question (SectionId, Content, ImageUrl) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, question.getSectionId());
@@ -52,14 +52,13 @@ public class QuestionRepository {
             if (affectedRows > 0) {
                 ResultSet generatedKeys = stmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
-                    question.setId(generatedKeys.getInt(1));
+                    return generatedKeys.getInt(1);
                 }
-                return true;
             }
         } catch (SQLException e) {
             ExceptionLogger.logError(QuestionRepository.class.getName(), "save", "Error saving question: " + e.getMessage());
         }
-        return false;
+        return 0;
     }
 
     public boolean update(Question question) {

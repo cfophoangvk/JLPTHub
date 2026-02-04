@@ -62,6 +62,25 @@ public class QuestionOptionRepository {
         return false;
     }
 
+    //Lưu nhiều câu trả lời cùng 1 lúc
+    public boolean saveBatch(ArrayList<QuestionOption> questionOptions) {
+        String sql = "INSERT INTO QuestionOption (QuestionId, Content, ImageUrl, IsCorrect) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            for (QuestionOption option : questionOptions) {
+                stmt.setInt(1, option.getQuestionId());
+                stmt.setString(2, option.getContent());
+                stmt.setString(3, option.getImageUrl());
+                stmt.setBoolean(4, option.isCorrect());
+                stmt.addBatch();
+            }
+            int[] affectedRows = stmt.executeBatch();
+            return affectedRows.length > 0;
+        } catch (SQLException e) {
+            ExceptionLogger.logError(QuestionOptionRepository.class.getName(), "saveBatch", "Error saving batch of options: " + e.getMessage());
+        }
+        return false;
+    }
+
     public boolean update(QuestionOption option) {
         String sql = "UPDATE QuestionOption SET Content = ?, ImageUrl = ?, IsCorrect = ? WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {

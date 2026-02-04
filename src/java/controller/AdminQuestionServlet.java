@@ -11,12 +11,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import model.*;
+import repository.QuestionOptionRepository;
 import service.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @WebServlet(name = "AdminQuestionServlet", urlPatterns = {
     "/admin/questions",
@@ -34,6 +39,7 @@ public class AdminQuestionServlet extends HttpServlet {
     private final TestSectionService sectionService = new TestSectionService();
     private final TestService testService = new TestService();
     private final QuestionService questionService = new QuestionService();
+    private final QuestionOptionRepository optionRepository = new QuestionOptionRepository();
     private final CloudinaryService cloudinaryService = new CloudinaryService();
 
     @Override
@@ -136,7 +142,7 @@ public class AdminQuestionServlet extends HttpServlet {
                 request.setAttribute("test", test);
                 request.setAttribute("section", section);
                 request.setAttribute("sectionId", sectionIdStr);
-                request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/question/form.jsp").forward(request, response);
+                request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/question/add-form.jsp").forward(request, response);
             } catch (NumberFormatException e) {
                 response.sendRedirect(request.getContextPath() + "/admin/tests");
             }
@@ -154,24 +160,36 @@ public class AdminQuestionServlet extends HttpServlet {
                 if (question != null) {
                     TestSection section = sectionService.findById(question.getSectionId());
                     Test test = testService.findById(section.getTestId());
+                    List<QuestionOption> options = optionRepository.findAllByQuestionId(id);
                     request.setAttribute("question", question);
+                    request.setAttribute("options", options);
                     request.setAttribute("test", test);
                     request.setAttribute("section", section);
                     request.setAttribute("sectionId", String.valueOf(question.getSectionId()));
-                    request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/question/form.jsp").forward(request, response);
+                    request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/question/edit-form.jsp").forward(request, response);
                     return;
                 }
             } catch (NumberFormatException e) {
-                // Invalid ID
+                ExceptionLogger.logError(AdminQuestionServlet.class.getName(), "showEditForm", "Invalid question id!");
             }
         }
         response.sendRedirect(request.getContextPath() + "/admin/tests");
     }
 
+    //Tạo câu hỏi -> tạo luôn câu trả lời
     private void createQuestion(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         String sectionIdStr = request.getParameter("sectionId");
         String content = request.getParameter("content");
         Part imagePart = request.getPart("image");
+        ArrayList<String> answerIsCorrectIndexes = new ArrayList<>(Arrays.asList(request.getParameterValues("answerIsCorrect")));
+        String[] answerContents = request.getParameterValues("answerContent");
+        Collection<Part> answerImageParts = request.getParts().stream().filter(p -> p.getName().contains("answerImage")).collect(Collectors.toCollection(ArrayList::new));
+
+        if (answerIsCorrectIndexes.isEmpty()) {
+            request.setAttribute("error", "Không có câu trả lời đúng!");
+            showCreateForm(request, response);
+            return;
+        }
 
         if (sectionIdStr == null || sectionIdStr.isEmpty()) {
             request.setAttribute("error", "Phần thi không hợp lệ.");
@@ -195,14 +213,39 @@ public class AdminQuestionServlet extends HttpServlet {
             return;
         }
 
-        String imageUrl = cloudinaryService.uploadImage(imagePart);
+        //upload ảnh lên cloud
+        String questionImageUrl = cloudinaryService.uploadImage(imagePart, BaseURL.CLOUDINARY_TEST_FOLDER);
+        ArrayList<String> answerImageUrls = new ArrayList<>();
+        for (Part answerImagePart : answerImageParts) {
+            if (!answerImagePart.getSubmittedFileName().isEmpty()) {
+                String answerImageUrl = cloudinaryService.uploadImage(answerImagePart, BaseURL.CLOUDINARY_TEST_FOLDER);
+                answerImageUrls.add(answerImageUrl);
+            } else {
+                answerImageUrls.add(null);
+            }
+        }
+
+        ArrayList<QuestionOption> questionOptions = new ArrayList<>();
+        for (int i = 0; i < answerContents.length; i++) {
+            QuestionOption qo = new QuestionOption();
+            qo.setContent(answerContents[i]);
+            qo.setImageUrl(answerImageUrls.get(i));
+
+            if (answerIsCorrectIndexes.contains(String.valueOf(i))) {
+                qo.setCorrect(true);
+            } else {
+                qo.setCorrect(false);
+            }
+
+            questionOptions.add(qo);
+        }
 
         Question question = new Question();
         question.setSectionId(sectionId);
         question.setContent(content.trim());
-        question.setImageUrl(imageUrl);
+        question.setImageUrl(questionImageUrl);
 
-        if (questionService.save(question)) {
+        if (questionService.save(question, questionOptions)) {
             response.sendRedirect(request.getContextPath() + "/admin/questions?sectionId=" + sectionIdStr + "&success=created");
         } else {
             request.setAttribute("error", "Không thể tạo câu hỏi. Vui lòng thử lại.");
@@ -217,6 +260,20 @@ public class AdminQuestionServlet extends HttpServlet {
         String content = request.getParameter("content");
         String existingImageUrl = request.getParameter("existingImageUrl");
         Part imagePart = request.getPart("image");
+        
+        // Options data
+        String[] optionIds = request.getParameterValues("optionId");
+        String[] answerContents = request.getParameterValues("answerContent");
+        String[] existingOptionImageUrls = request.getParameterValues("existingOptionImageUrl");
+        String deletedOptionIdsStr = request.getParameter("deletedOptionIds");
+        ArrayList<String> answerIsCorrectIndexes = new ArrayList<>();
+        String[] correctValues = request.getParameterValues("answerIsCorrect");
+        if (correctValues != null) {
+            answerIsCorrectIndexes.addAll(Arrays.asList(correctValues));
+        }
+        Collection<Part> answerImageParts = request.getParts().stream()
+                .filter(p -> p.getName().equals("answerImage"))
+                .collect(Collectors.toCollection(ArrayList::new));
 
         if (idStr == null || content == null || content.trim().isEmpty()) {
             request.setAttribute("error", "Dữ liệu không hợp lệ.");
@@ -239,22 +296,85 @@ public class AdminQuestionServlet extends HttpServlet {
 
         Question question = questionService.findById(id);
         if (question != null) {
+            // Update question content and image
             question.setContent(content.trim());
 
-            String imageUrl = cloudinaryService.uploadImage(imagePart);
+            String imageUrl = cloudinaryService.uploadImage(imagePart, BaseURL.CLOUDINARY_TEST_FOLDER);
             if (imageUrl != null) {
                 question.setImageUrl(imageUrl);
             } else {
                 question.setImageUrl(existingImageUrl);
             }
 
-            if (questionService.update(question)) {
+            boolean questionUpdated = questionService.update(question);
+            
+            // Delete removed options
+            if (deletedOptionIdsStr != null && !deletedOptionIdsStr.trim().isEmpty()) {
+                String[] deletedIds = deletedOptionIdsStr.split(",");
+                for (String deletedId : deletedIds) {
+                    try {
+                        int optionId = Integer.parseInt(deletedId.trim());
+                        optionRepository.delete(optionId);
+                    } catch (NumberFormatException e) {
+                        // Skip invalid IDs
+                    }
+                }
+            }
+            
+            // Process options (add new / update existing)
+            if (optionIds != null && answerContents != null) {
+                List<Part> imagePartsList = new ArrayList<>(answerImageParts);
+                
+                for (int i = 0; i < optionIds.length; i++) {
+                    String optionIdStr = optionIds[i];
+                    String optContent = answerContents[i];
+                    String existingOptImageUrl = (existingOptionImageUrls != null && i < existingOptionImageUrls.length) 
+                            ? existingOptionImageUrls[i] : null;
+                    Part optImagePart = (i < imagePartsList.size()) ? imagePartsList.get(i) : null;
+                    boolean isCorrect = answerIsCorrectIndexes.contains(String.valueOf(i));
+                    
+                    // Upload new image if provided
+                    String optImageUrl = null;
+                    if (optImagePart != null && optImagePart.getSize() > 0 && !optImagePart.getSubmittedFileName().isEmpty()) {
+                        optImageUrl = cloudinaryService.uploadImage(optImagePart, BaseURL.CLOUDINARY_TEST_FOLDER);
+                    }
+                    if (optImageUrl == null) {
+                        optImageUrl = existingOptImageUrl;
+                    }
+                    
+                    if ("new".equals(optionIdStr)) {
+                        // Create new option
+                        QuestionOption newOption = new QuestionOption();
+                        newOption.setQuestionId(id);
+                        newOption.setContent(optContent);
+                        newOption.setImageUrl(optImageUrl);
+                        newOption.setCorrect(isCorrect);
+                        optionRepository.save(newOption);
+                    } else {
+                        // Update existing option
+                        try {
+                            int existingOptionId = Integer.parseInt(optionIdStr);
+                            QuestionOption existingOption = optionRepository.findById(existingOptionId);
+                            if (existingOption != null) {
+                                existingOption.setContent(optContent);
+                                existingOption.setImageUrl(optImageUrl);
+                                existingOption.setCorrect(isCorrect);
+                                optionRepository.update(existingOption);
+                            }
+                        } catch (NumberFormatException e) {
+                            // Skip invalid option IDs
+                        }
+                    }
+                }
+            }
+
+            if (questionUpdated) {
                 response.sendRedirect(request.getContextPath() + "/admin/questions?sectionId=" + question.getSectionId() + "&success=updated");
             } else {
                 request.setAttribute("error", "Không thể cập nhật câu hỏi. Vui lòng thử lại.");
                 request.setAttribute("question", question);
                 request.setAttribute("sectionId", String.valueOf(question.getSectionId()));
-                request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/question/form.jsp").forward(request, response);
+                request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/question/edit-form.jsp").forward(request, response);
             }
         } else {
             response.sendRedirect(request.getContextPath() + "/admin/tests");

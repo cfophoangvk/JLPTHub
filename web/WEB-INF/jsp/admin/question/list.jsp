@@ -127,9 +127,8 @@
                                             <ui:td>${optionCounts[question.id]}</ui:td>
                                             <ui:td
                                                 className="text-center flex justify-center items-center space-x-2 mx-auto">
-                                                <ui:button className="!bg-teal-500 hover:!bg-teal-700 text-white"
-                                                    onclick="goToOptions('${question.id}')">
-                                                    Lựa chọn
+                                                <ui:button className="!bg-teal-500 hover:!bg-teal-700 text-white">
+                                                    Xem chi tiết
                                                 </ui:button>
                                                 <ui:separator orientation="vertical" />
                                                 <ui:button size="icon"

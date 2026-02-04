@@ -147,8 +147,8 @@ public class AdminFlashcardServlet extends HttpServlet {
             }
         }
 
-        String termImageUrl = cloudinaryService.uploadImage(termImagePart);
-        String definitionImageUrl = cloudinaryService.uploadImage(definitionImagePart);
+        String termImageUrl = cloudinaryService.uploadImage(termImagePart, BaseURL.CLOUDINARY_FLASHCARD_FOLDER);
+        String definitionImageUrl = cloudinaryService.uploadImage(definitionImagePart, BaseURL.CLOUDINARY_FLASHCARD_FOLDER);
 
         Flashcard flashcard = new Flashcard();
         flashcard.setId(UUID.randomUUID());
@@ -205,14 +205,14 @@ public class AdminFlashcardServlet extends HttpServlet {
             flashcard.setDefinition(definition);
             flashcard.setOrderIndex(orderIndex);
 
-            String termImageUrl = cloudinaryService.uploadImage(termImagePart);
+            String termImageUrl = cloudinaryService.uploadImage(termImagePart, BaseURL.CLOUDINARY_FLASHCARD_FOLDER);
             if (termImageUrl != null) {
                 flashcard.setTermImageUrl(termImageUrl);
             } else {
                 flashcard.setTermImageUrl(existingTermImage);
             }
 
-            String definitionImageUrl = cloudinaryService.uploadImage(definitionImagePart);
+            String definitionImageUrl = cloudinaryService.uploadImage(definitionImagePart, BaseURL.CLOUDINARY_FLASHCARD_FOLDER);
             if (definitionImageUrl != null) {
                 flashcard.setDefinitionImageUrl(definitionImageUrl);
             } else {
