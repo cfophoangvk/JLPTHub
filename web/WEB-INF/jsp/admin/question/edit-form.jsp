@@ -104,16 +104,14 @@
                                     <c:forEach items="${options}" var="option" varStatus="status">
                                         <div class="flex mb-2 space-x-2 items-center"
                                             id="answerItem-existing-${option.id}">
-                                            <!-- Hidden field to track existing option id -->
+                                            <%-- Track cái id và ảnh của từng thằng option --%>
                                             <input type="hidden" name="optionId" value="${option.id}" />
-                                            <input type="hidden" name="existingOptionImageUrl"
-                                                value="${option.imageUrl}" />
+                                            <input type="hidden" name="existingOptionImageUrl" value="${option.imageUrl}" />
                                             <input type="checkbox"
                                                 class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                                                 name="answerIsCorrect" ${option.correct ? 'checked' : '' }
                                                 onchange="this.setAttribute('checked', this.checked)" />
-                                            <div
-                                                class="w-36 h-36 relative overflow-hidden rounded-lg border border-gray-300">
+                                            <div class="w-36 h-36 relative overflow-hidden rounded-lg border border-gray-300">
                                                 <button id="remove-image-existing-${option.id}" type="button"
                                                     class="absolute top-2 right-2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100 transition-colors z-10 ${empty option.imageUrl ? 'hidden' : ''}"
                                                     onclick="removeImage('existing-${option.id}')">

@@ -5,7 +5,6 @@
 
                 <layout:mainLayout>
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        <!-- Breadcrumb -->
                         <nav class="flex mb-4" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                                 <li class="inline-flex items-center">
@@ -127,7 +126,8 @@
                                             <ui:td>${optionCounts[question.id]}</ui:td>
                                             <ui:td
                                                 className="text-center flex justify-center items-center space-x-2 mx-auto">
-                                                <ui:button className="!bg-teal-500 hover:!bg-teal-700 text-white">
+                                                <ui:button className="!bg-teal-500 hover:!bg-teal-700 text-white"
+                                                    onclick="showQuestionDetail('${question.id}')">
                                                     Xem chi tiết
                                                 </ui:button>
                                                 <ui:separator orientation="vertical" />
@@ -160,14 +160,12 @@
                             </ui:table>
                         </div>
 
-                        <!-- Delete Form -->
                         <form id="deleteForm" action="${pageContext.request.contextPath}/admin/questions/delete"
                             method="POST">
                             <input type="hidden" name="id" id="deleteQuestionId" value="" />
                             <input type="hidden" name="sectionId" value="${section.id}" />
                         </form>
 
-                        <!-- Delete Confirmation Dialog -->
                         <ui:alertDialog id="alert-question">
                             <ui:alertDialogHeader>
                                 <ui:alertDialogTitle>Xác nhận xóa</ui:alertDialogTitle>
@@ -188,13 +186,37 @@
                             </ui:alertDialogFooter>
                         </ui:alertDialog>
 
-                        <!-- Image Preview Modal -->
                         <div id="imageModal"
                             class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center"
                             onclick="hideImage()">
                             <img id="previewImage" src="" alt="Preview" class="max-w-4xl max-h-screen object-contain" />
                         </div>
                     </div>
+                        
+                    <ui:dialog id="detail-dialog" className="h-[90%] w-3xl scrollbar-hide open:flex open:flex-col open:gap-2">
+                        <ui:dialogHeader>
+                            <ui:dialogTitle>Chi tiết câu hỏi</ui:dialogTitle>
+                        </ui:dialogHeader>
+
+                        <div id="detail-skeleton" class="animate-pulse space-y-4">
+                            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div class="h-40 bg-gray-200 rounded w-full"></div>
+                            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                            <div class="space-y-2">
+                                <div class="h-8 bg-gray-200 rounded w-full"></div>
+                                <div class="h-8 bg-gray-200 rounded w-full"></div>
+                                <div class="h-8 bg-gray-200 rounded w-full"></div>
+                                <div class="h-8 bg-gray-200 rounded w-full"></div>
+                            </div>
+                        </div>
+
+                        <div id="detail-container" class="h-full overflow-y-auto hidden">
+                            <p class="mt-1 text-base text-gray-900 text-center" id="detail-questionContent">Câu hỏi sẽ xuất hiện ở đây.</p>
+                            <img id="detail-questionImage" src="https://res.cloudinary.com/dnvp064it/image/upload/v1770205295/Tests/hiapdqfliel84tdbnnyj.jpg" class="max-h-60 rounded object-contain border border-gray-200 mx-auto">
+                            <h4 class="text-sm font-medium text-gray-500 my-2">Các lựa chọn (<span id="detail-noAnswers">0</span>):</h4>
+                            <div id="detail-answerItems" class="space-y-2"></div>
+                        </div>
+                    </ui:dialog>
 
                     <script>
                         const goToOptions = (id) => {
@@ -218,5 +240,64 @@
                         const hideImage = () => {
                             document.getElementById('imageModal').classList.add('hidden');
                         };
+
+                        const closeDetailModal = () => {
+                            document.getElementById('detailModal').classList.add('hidden');
+                        };
+
+                        const showQuestionDetail = (id) => {
+                            openDialog("detail-dialog");
+                            const skeleton = document.getElementById("detail-skeleton");
+                            const container = document.getElementById("detail-container");
+                            const questionContent = document.getElementById("detail-questionContent");
+                            const questionImage = document.getElementById("detail-questionImage");
+                            const noAnswers = document.getElementById("detail-noAnswers");
+                            const answerItems = document.getElementById("detail-answerItems");
+                            skeleton.classList.remove("hidden");
+                            container.classList.add("hidden");
+                            
+                            fetch('${pageContext.request.contextPath}/admin/questions/detail?id=' + id)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.error) {
+                                        content.innerHTML = `<div class="text-red-500">Error: \${data.error}</div>`;
+                                        return;
+                                    }
+                                    
+                                    answerItems.innerHTML = "";
+                                    const q = data.question;
+                                    const opts = data.options || [];
+                                    questionContent.innerText = q.content || "Không có nội dung";
+                                    
+                                    if (q.imageUrl) {
+                                        questionImage.classList.remove("hidden");
+                                        questionImage.src = q.imageUrl;
+                                    }else {
+                                        questionImage.classList.add("hidden");
+                                    }
+                                    
+                                    noAnswers.innerText = opts.length;
+                                    
+                                    opts.forEach(opt => {
+                                        const answerEl = `<div class="flex items-center p-3 rounded-lg border \${opt.isCorrect ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}">
+                                            <div class="flex-1 flex items-center gap-2">
+                                                <img src="\${opt.imageUrl}" class="h-16 w-16 object-cover rounded mb-1 bg-white border border-gray-100 \${opt.imageUrl ?? 'hidden'}">
+                                                <p class="text-sm">\${opt.content}</p>
+                                            </div>
+                                            <div class="flex-shrink-0 mt-0.5">
+                                               \${opt.isCorrect ? '<span class="text-green-600"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></span>' : ''}
+                                            </div>
+                                        </div>`;
+                                        answerItems.innerHTML += answerEl;
+                                    });
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                })
+                                .finally(() => {
+                                    skeleton.classList.add("hidden");
+                                    container.classList.remove("hidden");
+                                });
+                            };
                     </script>
                 </layout:mainLayout>

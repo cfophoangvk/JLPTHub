@@ -11,9 +11,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import model.*;
-import repository.QuestionOptionRepository;
 import service.*;
-
+import com.google.gson.Gson;
+import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,7 +27,8 @@ import java.util.stream.Collectors;
     "/admin/questions",
     "/admin/questions/create",
     "/admin/questions/edit",
-    "/admin/questions/delete"
+    "/admin/questions/delete",
+    "/admin/questions/detail"
 })
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024 * 2, // 2MB
@@ -39,7 +40,7 @@ public class AdminQuestionServlet extends HttpServlet {
     private final TestSectionService sectionService = new TestSectionService();
     private final TestService testService = new TestService();
     private final QuestionService questionService = new QuestionService();
-    private final QuestionOptionRepository optionRepository = new QuestionOptionRepository();
+    private final QuestionOptionService optionService = new QuestionOptionService();
     private final CloudinaryService cloudinaryService = new CloudinaryService();
 
     @Override
@@ -57,6 +58,9 @@ public class AdminQuestionServlet extends HttpServlet {
                     break;
                 case "/admin/questions/edit":
                     showEditForm(request, response);
+                    break;
+                case "/admin/questions/detail":
+                    getQuestionDetails(request, response);
                     break;
                 case "/admin/questions":
                 default:
@@ -160,7 +164,7 @@ public class AdminQuestionServlet extends HttpServlet {
                 if (question != null) {
                     TestSection section = sectionService.findById(question.getSectionId());
                     Test test = testService.findById(section.getTestId());
-                    List<QuestionOption> options = optionRepository.findAllByQuestionId(id);
+                    List<QuestionOption> options = optionService.findAllByQuestionId(id);
                     request.setAttribute("question", question);
                     request.setAttribute("options", options);
                     request.setAttribute("test", test);
@@ -174,6 +178,40 @@ public class AdminQuestionServlet extends HttpServlet {
             }
         }
         response.sendRedirect(request.getContextPath() + "/admin/tests");
+    }
+
+    private void getQuestionDetails(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String idStr = request.getParameter("id");
+        if (idStr != null) {
+            try {
+                int id = Integer.parseInt(idStr);
+                Question question = questionService.findById(id);
+                if (question != null) {
+                    List<QuestionOption> options = optionService.findAllByQuestionId(id);
+                    
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("question", question);
+                    data.put("options", options);
+                    
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    
+                    Gson gson = new Gson();
+                    String json = gson.toJson(data);
+                    
+                    try (PrintWriter out = response.getWriter()) {
+                        out.print(json);
+                        out.flush();
+                    }
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                ExceptionLogger.logError(AdminQuestionServlet.class.getName(), "getQuestionDetails", "Invalid question id!");
+            }
+        }
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"error\": \"Question not found\"}");
     }
 
     //Tạo câu hỏi -> tạo luôn câu trả lời
@@ -260,8 +298,7 @@ public class AdminQuestionServlet extends HttpServlet {
         String content = request.getParameter("content");
         String existingImageUrl = request.getParameter("existingImageUrl");
         Part imagePart = request.getPart("image");
-        
-        // Options data
+
         String[] optionIds = request.getParameterValues("optionId");
         String[] answerContents = request.getParameterValues("answerContent");
         String[] existingOptionImageUrls = request.getParameterValues("existingOptionImageUrl");
@@ -307,41 +344,33 @@ public class AdminQuestionServlet extends HttpServlet {
             }
 
             boolean questionUpdated = questionService.update(question);
-            
-            // Delete removed options
+
+            // Xóa đáp án cũ
             if (deletedOptionIdsStr != null && !deletedOptionIdsStr.trim().isEmpty()) {
                 String[] deletedIds = deletedOptionIdsStr.split(",");
                 for (String deletedId : deletedIds) {
                     try {
                         int optionId = Integer.parseInt(deletedId.trim());
-                        optionRepository.delete(optionId);
+                        optionService.delete(optionId);
                     } catch (NumberFormatException e) {
-                        // Skip invalid IDs
+                        ExceptionLogger.logError(AdminQuestionServlet.class.getName(), "updateQuestion", "Error deleting option: " + e.getMessage());
                     }
                 }
             }
-            
-            // Process options (add new / update existing)
+
+            // Thêm/Sửa đáp án mới
             if (optionIds != null && answerContents != null) {
                 List<Part> imagePartsList = new ArrayList<>(answerImageParts);
-                
+
                 for (int i = 0; i < optionIds.length; i++) {
                     String optionIdStr = optionIds[i];
                     String optContent = answerContents[i];
-                    String existingOptImageUrl = (existingOptionImageUrls != null && i < existingOptionImageUrls.length) 
-                            ? existingOptionImageUrls[i] : null;
+                    String existingOptImageUrl = (existingOptionImageUrls != null && i < existingOptionImageUrls.length) ? existingOptionImageUrls[i] : null;
                     Part optImagePart = (i < imagePartsList.size()) ? imagePartsList.get(i) : null;
                     boolean isCorrect = answerIsCorrectIndexes.contains(String.valueOf(i));
-                    
-                    // Upload new image if provided
-                    String optImageUrl = null;
-                    if (optImagePart != null && optImagePart.getSize() > 0 && !optImagePart.getSubmittedFileName().isEmpty()) {
-                        optImageUrl = cloudinaryService.uploadImage(optImagePart, BaseURL.CLOUDINARY_TEST_FOLDER);
-                    }
-                    if (optImageUrl == null) {
-                        optImageUrl = existingOptImageUrl;
-                    }
-                    
+
+                    String optImageUrl = optionService.getUpdatedImageUrl(optImagePart, existingOptImageUrl);
+
                     if ("new".equals(optionIdStr)) {
                         // Create new option
                         QuestionOption newOption = new QuestionOption();
@@ -349,20 +378,20 @@ public class AdminQuestionServlet extends HttpServlet {
                         newOption.setContent(optContent);
                         newOption.setImageUrl(optImageUrl);
                         newOption.setCorrect(isCorrect);
-                        optionRepository.save(newOption);
+                        optionService.save(newOption);
                     } else {
                         // Update existing option
                         try {
                             int existingOptionId = Integer.parseInt(optionIdStr);
-                            QuestionOption existingOption = optionRepository.findById(existingOptionId);
+                            QuestionOption existingOption = optionService.findById(existingOptionId);
                             if (existingOption != null) {
                                 existingOption.setContent(optContent);
                                 existingOption.setImageUrl(optImageUrl);
                                 existingOption.setCorrect(isCorrect);
-                                optionRepository.update(existingOption);
+                                optionService.update(existingOption);
                             }
                         } catch (NumberFormatException e) {
-                            // Skip invalid option IDs
+                            ExceptionLogger.logError(AdminQuestionServlet.class.getName(), "updateQuestion", "Error updating option: " + e.getMessage());
                         }
                     }
                 }
