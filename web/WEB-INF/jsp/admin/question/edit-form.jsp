@@ -67,7 +67,6 @@
                             <input type="hidden" name="id" value="${question.id}" />
                             <input type="hidden" name="sectionId" value="${sectionId}" />
                             <input type="hidden" name="existingImageUrl" value="${question.imageUrl}" />
-                            <!-- Hidden field to track deleted option IDs -->
                             <input type="hidden" name="deletedOptionIds" id="deletedOptionIds" value="" />
 
                             <div class="mb-4">
@@ -105,52 +104,57 @@
                                         <div class="flex mb-2 space-x-2 items-center"
                                             id="answerItem-existing-${option.id}">
                                             <%-- Track cái id và ảnh của từng thằng option --%>
-                                            <input type="hidden" name="optionId" value="${option.id}" />
-                                            <input type="hidden" name="existingOptionImageUrl" value="${option.imageUrl}" />
-                                            <input type="checkbox"
-                                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                                name="answerIsCorrect" ${option.correct ? 'checked' : '' }
-                                                onchange="this.setAttribute('checked', this.checked)" />
-                                            <div class="w-36 h-36 relative overflow-hidden rounded-lg border border-gray-300">
-                                                <button id="remove-image-existing-${option.id}" type="button"
-                                                    class="absolute top-2 right-2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100 transition-colors z-10 ${empty option.imageUrl ? 'hidden' : ''}"
-                                                    onclick="removeImage('existing-${option.id}')">
-                                                    <jsp:include page="/assets/icon/x.jsp">
-                                                        <jsp:param name="size" value="4" />
-                                                    </jsp:include>
-                                                </button>
-                                                <input type="file" class="hidden" id="file-input-existing-${option.id}"
-                                                    name="answerImage" accept="image/*"
-                                                    onchange="previewImage(event, this.id)">
+                                                <input type="hidden" name="optionId" value="${option.id}" />
+                                                <input type="hidden" name="existingOptionImageUrl"
+                                                    value="${option.imageUrl}" />
+                                                <input type="checkbox"
+                                                    class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                                    name="answerIsCorrect" ${option.correct ? 'checked' : '' }
+                                                    onchange="this.setAttribute('checked', this.checked)" />
+                                                <div
+                                                    class="w-36 h-36 relative overflow-hidden rounded-lg border border-gray-300">
+                                                    <button id="remove-image-existing-${option.id}" type="button"
+                                                        class="absolute top-2 right-2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100 transition-colors z-10 ${empty option.imageUrl ? 'hidden' : ''}"
+                                                        onclick="removeImage('existing-${option.id}')">
+                                                        <jsp:include page="/assets/icon/x.jsp">
+                                                            <jsp:param name="size" value="4" />
+                                                        </jsp:include>
+                                                    </button>
+                                                    <input type="file" class="hidden"
+                                                        id="file-input-existing-${option.id}" name="answerImage"
+                                                        accept="image/*" onchange="previewImage(event, this.id)">
 
-                                                <label for="file-input-existing-${option.id}"
-                                                    class="cursor-pointer w-full h-full block">
-                                                    <div id="image-fallback-existing-${option.id}"
-                                                        class="h-full w-full bg-gray-200 flex justify-center items-center ${empty option.imageUrl ? '' : 'hidden'}">
-                                                        <i class="fa fa-image text-3xl"></i>
-                                                    </div>
-                                                    <img id="image-preview-existing-${option.id}"
-                                                        src="${option.imageUrl}" alt="Preview"
-                                                        class="w-full h-full object-cover ${empty option.imageUrl ? 'hidden' : ''}">
-                                                    <div
-                                                        class="absolute inset-0 w-full h-full bg-black/50 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                                        <span>Thay đổi ảnh</span>
-                                                    </div>
-                                                </label>
-                                            </div>
-                                            <div class="flex-1">
-                                                <ui:textarea name="answerContent" placeholder="Nhập câu trả lời..." className="h-36 resize-none" onInput="this.innerText=this.value">${option.content}</ui:textarea>
-                                            </div>
-                                            <button type="button"
-                                                class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 text-red-500 hover:text-red-700"
-                                                onclick="removeExistingAnswer(${option.id})">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M18 6 6 18"></path>
-                                                    <path d="m6 6 12 12"></path>
-                                                </svg>
-                                            </button>
+                                                    <label for="file-input-existing-${option.id}"
+                                                        class="cursor-pointer w-full h-full block">
+                                                        <div id="image-fallback-existing-${option.id}"
+                                                            class="h-full w-full bg-gray-200 flex justify-center items-center ${empty option.imageUrl ? '' : 'hidden'}">
+                                                            <i class="fa fa-image text-3xl"></i>
+                                                        </div>
+                                                        <img id="image-preview-existing-${option.id}"
+                                                            src="${option.imageUrl}" alt="Preview"
+                                                            class="w-full h-full object-cover ${empty option.imageUrl ? 'hidden' : ''}">
+                                                        <div
+                                                            class="absolute inset-0 w-full h-full bg-black/50 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                                            <span>Thay đổi ảnh</span>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <ui:textarea name="answerContent" placeholder="Nhập câu trả lời..."
+                                                        className="h-36 resize-none"
+                                                        onInput="this.innerText=this.value">${option.content}
+                                                    </ui:textarea>
+                                                </div>
+                                                <button type="button"
+                                                    class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 text-red-500 hover:text-red-700"
+                                                    onclick="removeExistingAnswer(${option.id})">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M18 6 6 18"></path>
+                                                        <path d="m6 6 12 12"></path>
+                                                    </svg>
+                                                </button>
                                         </div>
                                     </c:forEach>
                                 </div>
@@ -258,7 +262,7 @@
                                   </svg>
                                 </button>
                               </div>`;
-                            document.getElementById('answer-container').innerHTML += answerElement;
+                            document.getElementById('answer-container').insertAdjacentHTML('beforeend', answerElement);
                             answerItemCount++;
                         };
 

@@ -102,7 +102,7 @@
                                 <ui:label label="Câu trả lời: (Tích vào ô nếu là câu trả lời đúng)" htmlFor=""
                                     required="true" />
                                 <div id="answer-container">
-                                    <div class="flex mb-2 space-x-2 items-center">
+                                    <div class="flex mb-2 space-x-2 items-center" id="answerItem-0">
                                         <input type="checkbox"
                                             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                                             name="answerIsCorrect"
@@ -133,12 +133,15 @@
                                             </label>
                                         </div>
                                         <div class="flex-1">
-                                            <ui:textarea name="answerContent" placeholder="Nhập câu trả lời..."
-                                                className="h-36 resize-none" onInput="this.innerText=this.value" />
+                                            <ui:textarea name="answerContent" id="answer-0"
+                                                placeholder="Nhập câu trả lời..." className="h-36 resize-none"
+                                                onInput="this.innerText=this.value" />
                                         </div>
                                     </div>
                                 </div>
 
+                                <p class="text-sm text-red-500" id="error-notEnoughAns"></p>
+                                <p class="text-sm text-red-500" id="error-isCorrect"></p>
                                 <ui:button className="space-x-2" onclick="addAnswer()">
                                     <jsp:include page="/assets/icon/plus.jsp">
                                         <jsp:param name="size" value="6" />
@@ -177,8 +180,15 @@
 
                     <script>
                         const contentValidation = (value) => {
-                            if (value.length <= 0) {
+                            if (value.trim().length <= 0) {
                                 return "Nội dung câu hỏi là bắt buộc!";
+                            }
+                            return "";
+                        };
+
+                        const answerValidation = (value) => {
+                            if (value.trim().length <= 0) {
+                                return "Câu trả lời là bắt buộc!";
                             }
                             return "";
                         };
@@ -186,6 +196,32 @@
                         const doValidation = () => {
                             let isValid = true;
                             isValid &= validateInput('questionContent', contentValidation);
+                            Array.from(document.querySelectorAll('textarea[name="answerContent"]')).forEach(el => {
+                                const id = el.id;
+                                isValid &= validateInput(id, answerValidation);
+                            });
+
+                            let numberOfAnswers = document.getElementById("answer-container").children.length;
+                            if (numberOfAnswers < 2) {
+                                document.getElementById("error-notEnoughAns").innerText = "Phải có ít nhất 2 đáp án!";
+                                isValid = false;
+                            } else {
+                                document.getElementById("error-notEnoughAns").innerText = "";
+                            }
+
+                            let hasCorrectAnswer = false;
+                            Array.from(document.querySelectorAll('input[name="answerIsCorrect"]')).forEach(el => {
+                                if (el.checked) {
+                                    hasCorrectAnswer = true;
+                                }
+                            });
+
+                            if (!hasCorrectAnswer) {
+                                document.getElementById("error-isCorrect").innerText = "Câu hỏi phải có ít nhất 1 câu trả lời đúng!";
+                                isValid = false;
+                            } else {
+                                document.getElementById("error-isCorrect").innerText = "";
+                            }
 
                             if (isValid) {
                                 openDialog('alert-question-form');
@@ -224,6 +260,7 @@
                                 </div>
                                 <div class="flex-1">
                                   <textarea name="answerContent" id="answer-\${answerItemCount}" oninput="this.innerText=this.value" placeholder="Nhập câu trả lời..." rows="3" class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 h-36 resize-none"></textarea>
+                                  <p class="text-sm text-red-500 hidden" id="error-answer-\${answerItemCount}"></p>
                                 </div>
                                 <button type="button" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 text-red-500 hover:text-red-700" onclick="removeAnswer(\${answerItemCount})">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -233,7 +270,7 @@
                                   </svg>
                                 </button>
                               </div>`;
-                            document.getElementById('answer-container').innerHTML += answerElement;
+                            document.getElementById('answer-container').insertAdjacentHTML('beforeend', answerElement);
                             answerItemCount++;
                         };
 

@@ -7,7 +7,7 @@
 <%@ attribute name="onChange" required="false" type="java.lang.String" %>
 
 <div class="relative custom-select-container w-full" id="${id}-root" data-on-change="${onChange}">
-    <input type="hidden" name="${name}" id="${id}" value="${defaultValue}" />
+    <input type="hidden" name="${name}" id="${id}-input" value="${defaultValue}" />
     
     <c:set var="selectId" value="${id}" scope="request" /> 
     

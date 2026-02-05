@@ -10,7 +10,7 @@
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900">
                             <i class="fa-solid fa-book-open text-indigo-500 mr-3"></i>
-                            Nhóm Bài Học
+                            Nhóm bài học
                         </h1>
                         <p class="text-gray-600 mt-2">
                             Học tiếng Nhật với các bài học được thiết kế cho các cấp độ

@@ -77,7 +77,8 @@
                                                     <div
                                                         class="flex items-center text-rose-500 font-medium text-sm group-hover:text-rose-600 transition-colors">
                                                         <span>Bắt đầu học</span>
-                                                        <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                                                        <i
+                                                            class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                                                     </div>
                                                 </div>
                                             </a>

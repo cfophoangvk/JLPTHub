@@ -184,7 +184,7 @@
 
             function toggleSelect (triggerId) {
                 const content = document.getElementById(triggerId + '-content');
-                const trigger = document.getElementById(triggerId + "-trigger");
+                const trigger = document.getElementById(triggerId);
 
                 const isHidden = content.classList.contains('hidden');
 
@@ -200,7 +200,7 @@
             }
 
             function selectOption (triggerId, value, label) {
-                const input = document.getElementById(triggerId);
+                const input = document.getElementById(triggerId + "-input");
                 const initialValue = input.value;
                 input.value = value;
 
@@ -210,7 +210,7 @@
                 const content = document.getElementById(triggerId + '-content');
                 content.classList.add('hidden');
 
-                const trigger = document.getElementById(triggerId + "-trigger");
+                const trigger = document.getElementById(triggerId);
                 trigger.setAttribute('aria-expanded', 'false');
 
                 const root = document.getElementById(triggerId + '-root');

@@ -92,7 +92,7 @@
                                         <ui:input id="registerPassword" type="password" name="password"
                                             placeholder="********" />
                                     </div>
-                                    <ui:label htmlFor="targetLevel-trigger" label="Chọn cấp độ"></ui:label>
+                                    <ui:label htmlFor="targetLevel" label="Chọn cấp độ"></ui:label>
 
                                     <ui:select name="targetLevel" id="targetLevel">
                                         <ui:selectTrigger placeholder="Chọn cấp độ" className="w-full mb-2" />

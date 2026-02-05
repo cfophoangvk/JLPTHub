@@ -22,7 +22,8 @@
                                             <p class="text-gray-600 text-sm mt-1">
                                                 <c:choose>
                                                     <c:when test="${mode == 'quiz'}">
-                                                        <i class="fa-solid fa-list-check text-rose-500 mr-1"></i> Trắc nghiệm
+                                                        <i class="fa-solid fa-list-check text-rose-500 mr-1"></i> Trắc
+                                                        nghiệm
                                                     </c:when>
                                                     <c:otherwise>
                                                         <i class="fa-solid fa-link text-rose-500 mr-1"></i> Nối từ
@@ -31,10 +32,12 @@
                                                 •
                                                 <c:choose>
                                                     <c:when test="${scope == 'favorites'}">
-                                                        <i class="fa-solid fa-bookmark text-yellow-500 mr-1"></i> Thẻ đã đánh dấu
+                                                        <i class="fa-solid fa-bookmark text-yellow-500 mr-1"></i> Thẻ đã
+                                                        đánh dấu
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <i class="fa-solid fa-layer-group text-rose-500 mr-1"></i> Toàn bộ thẻ
+                                                        <i class="fa-solid fa-layer-group text-rose-500 mr-1"></i> Toàn
+                                                        bộ thẻ
                                                     </c:otherwise>
                                                 </c:choose>
                                             </p>
@@ -85,7 +88,8 @@
                                             <div id="question-card" class="bg-white rounded-2xl shadow-lg p-8 mb-6">
                                                 <div class="text-center mb-8">
                                                     <p class="text-sm text-gray-500 mb-2">Từ vựng</p>
-                                                    <h2 id="question-term" class="text-4xl font-bold text-gray-900"></h2>
+                                                    <h2 id="question-term" class="text-4xl font-bold text-gray-900">
+                                                    </h2>
                                                 </div>
 
                                                 <div id="options-container"
@@ -118,24 +122,35 @@
                                             <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
                                                 <div class="flex items-center gap-3 text-gray-700">
                                                     <i class="fa-solid fa-circle-info text-rose-500 text-xl"></i>
-                                                    <p>Nhấn vào một từ ở cột trái, sau đó nhấn vào nghĩa tương ứng ở cột phải để nối.</p>
+                                                    <p>Kéo từ cột trái và thả vào nghĩa tương ứng ở cột phải để nối.</p>
                                                 </div>
                                             </div>
 
-                                            <div class="grid grid-cols-2 gap-6">
-                                                <div id="terms-column" class="space-y-3">
-                                                    <!-- Thuật ngữ (JS sẽ gen ra) -->
+                                            <div id="match-game-container"
+                                                class="relative bg-white rounded-2xl shadow-lg p-6">
+                                                <div class="grid grid-cols-2 gap-20">
+                                                    <div id="terms-column" class="space-y-4">
+                                                        <!-- Thuật ngữ (JS sẽ gen ra) -->
+                                                    </div>
+
+                                                    <div id="definitions-column" class="space-y-4">
+                                                        <!-- Định nghĩa (JS sẽ gen ra) -->
+                                                    </div>
                                                 </div>
 
-                                                <div id="definitions-column" class="space-y-3">
-                                                    <!-- Định nghĩa (JS sẽ gen ra) -->
-                                                </div>
+                                                <!-- SVG overlay for drawing lines -->
+                                                <svg id="match-svg"
+                                                    class="absolute top-0 left-0 w-full h-full pointer-events-none"
+                                                    style="z-index: 10;">
+                                                    <!-- Lines will be drawn here by JavaScript -->
+                                                </svg>
                                             </div>
 
                                             <div id="match-feedback" class="mt-6 hidden">
                                                 <div
                                                     class="bg-green-100 border border-green-200 rounded-2xl p-6 text-center">
-                                                    <i class="fa-solid fa-check-circle text-green-500 text-5xl mb-4"></i>
+                                                    <i
+                                                        class="fa-solid fa-check-circle text-green-500 text-5xl mb-4"></i>
                                                     <h3 class="text-xl font-bold text-green-800 mb-2">Hoàn thành!</h3>
                                                     <p class="text-green-700" id="match-score"></p>
                                                 </div>
@@ -176,8 +191,8 @@
                             <c:forEach var="card" items="${flashcards}" varStatus="loop">
                                 {
                                     id: '${card.id}',
-                                    term: '${card.term}',
-                                    definition: '${card.definition}'
+                                term: '${card.term}',
+                                definition: '${card.definition}'
                                 }<c:if test="${!loop.last}">,</c:if>
                             </c:forEach>
                         ];
@@ -190,7 +205,6 @@
                         let selectedOption = null;
                         let hasAnswered = false;
 
-                        let selectedTerm = null;
                         let matchedPairs = 0;
                         let matchAttempts = 0;
 
@@ -310,6 +324,12 @@
                             document.getElementById('progress-text').textContent = (currentIndex + 1) + ' / ' + totalQuestions;
                         }
 
+                        let draggingCard = null;
+                        let dragStartPos = null;
+                        let currentLine = null;
+                        let permanentLines = [];
+                        let matchedCards = new Set();
+
                         function initMatch() {
                             const termsColumn = document.getElementById('terms-column');
                             const defsColumn = document.getElementById('definitions-column');
@@ -320,75 +340,181 @@
                             shuffledTerms.forEach(card => {
                                 const div = document.createElement('div');
                                 div.id = 'term-' + card.id;
-                                div.className = 'p-4 bg-white rounded-xl shadow border-2 border-gray-200 cursor-pointer hover:border-rose-400 hover:shadow-lg transition-all font-semibold text-gray-800 text-center';
+                                div.className = 'p-4 bg-white rounded-xl shadow border-2 border-gray-200 cursor-grab hover:border-blue-400 hover:shadow-lg transition-all font-semibold text-gray-800 text-center select-none';
                                 div.textContent = card.term;
-                                div.onclick = () => selectTerm(card.id, div);
+                                div.dataset.cardId = card.id;
+                                div.dataset.cardType = 'term';
+                                div.addEventListener('mousedown', handleTermMouseDown);
                                 termsColumn.appendChild(div);
                             });
 
                             shuffledDefs.forEach(card => {
                                 const div = document.createElement('div');
                                 div.id = 'def-' + card.id;
-                                div.className = 'p-4 bg-white rounded-xl shadow border-2 border-gray-200 cursor-pointer hover:border-rose-400 hover:shadow-lg transition-all text-gray-700 text-center';
+                                div.className = 'p-4 bg-white rounded-xl shadow border-2 border-gray-200 transition-all text-gray-700 text-center select-none';
                                 div.textContent = card.definition;
-                                div.onclick = () => selectDefinition(card.id, div);
+                                div.dataset.cardId = card.id;
+                                div.dataset.cardType = 'def';
                                 defsColumn.appendChild(div);
                             });
+
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                            window.addEventListener('resize', updateAllLines);
                         }
 
-                        function selectTerm(id, element) {
-                            if (selectedTerm) {
-                                const prev = document.getElementById('term-' + selectedTerm);
-                                if (prev) prev.classList.remove('border-rose-500', 'bg-rose-50');
-                            }
+                        function handleTermMouseDown(e) {
+                            e.preventDefault();
+                            const element = e.currentTarget;
 
-                            selectedTerm = id;
-                            element.classList.add('border-rose-500', 'bg-rose-50');
-                        }
-
-                        function selectDefinition(defId, element) {
-                            if (!selectedTerm) {
-                                element.classList.add('animate-shake');
-                                setTimeout(() => element.classList.remove('animate-shake'), 500);
+                            if (matchedCards.has(element.dataset.cardId)) {
                                 return;
                             }
 
-                            matchAttempts++;
-                            const termElement = document.getElementById('term-' + selectedTerm);
+                            draggingCard = {
+                                id: element.dataset.cardId,
+                                element: element
+                            };
 
-                            if (selectedTerm === defId) {
-                                score++;
-                                matchedPairs++;
-                                document.getElementById('score-display').textContent = score;
+                            const pos = getCardPoint(element, 'right');
+                            dragStartPos = pos;
 
-                                termElement.classList.remove('border-rose-500', 'bg-rose-50');
-                                termElement.classList.add('border-green-500', 'bg-green-100', 'text-green-800', 'cursor-default');
-                                termElement.onclick = null;
+                            currentLine = createSVGLine(pos.x, pos.y, pos.x, pos.y, 'temp');
+                            document.getElementById('match-svg').appendChild(currentLine);
 
-                                element.classList.add('border-green-500', 'bg-green-100', 'text-green-800', 'cursor-default');
-                                element.onclick = null;
+                            element.style.cursor = 'grabbing';
+                        }
 
-                                submitAnswer(defId, true);
+                        function handleMouseMove(e) {
+                            if (!draggingCard || !currentLine) return;
 
-                                if (matchedPairs === flashcards.length) {
-                                    setTimeout(() => {
-                                        document.getElementById('match-feedback').classList.remove('hidden');
-                                        document.getElementById('match-score').textContent =
-                                            'Bạn đã nối đúng ' + score + '/' + flashcards.length + ' cặp!';
-                                        showResults();
-                                    }, 500);
-                                }
+                            const container = document.getElementById('match-game-container');
+                            const rect = container.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const y = e.clientY - rect.top;
+
+                            if (x > dragStartPos.x) {
+                                currentLine.setAttribute('x2', x);
+                                currentLine.setAttribute('y2', y);
                             } else {
-                                termElement.classList.add('border-red-500', 'bg-red-50');
-                                element.classList.add('border-red-500', 'bg-red-50');
+                                currentLine.setAttribute('x2', dragStartPos.x);
+                                currentLine.setAttribute('y2', dragStartPos.y);
+                            }
+                        }
 
-                                setTimeout(() => {
-                                    termElement.classList.remove('border-red-500', 'bg-red-50', 'border-rose-500', 'bg-rose-50');
-                                    element.classList.remove('border-red-500', 'bg-red-50');
-                                }, 500);
+                        function handleMouseUp(e) {
+                            if (!draggingCard) return;
+
+                            if (currentLine) {
+                                currentLine.remove();
+                                currentLine = null;
                             }
 
-                            selectedTerm = null;
+                            draggingCard.element.style.cursor = 'grab';
+
+                            const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
+                            const defCard = dropTarget?.closest('[data-card-type="def"]');
+
+                            if (defCard && !matchedCards.has(defCard.dataset.cardId)) {
+                                const termId = draggingCard.id;
+                                const defId = defCard.dataset.cardId;
+
+                                matchAttempts++;
+
+                                if (termId === defId) {
+                                    //Nối đúng
+                                    score++;
+                                    matchedPairs++;
+                                    document.getElementById('score-display').textContent = score;
+
+                                    matchedCards.add(termId);
+                                    matchedCards.add(defId);
+
+                                    draggingCard.element.classList.remove('border-gray-200', 'hover:border-blue-400');
+                                    draggingCard.element.classList.add('border-green-300', '!bg-green-100');
+                                    draggingCard.element.style.cursor = 'default';
+
+                                    defCard.classList.remove('border-gray-200');
+                                    defCard.classList.add('border-green-300', '!bg-green-100');
+
+                                    const startPos = getCardPoint(draggingCard.element, 'right');
+                                    const endPos = getCardPoint(defCard, 'left');
+                                    const line = createSVGLine(startPos.x, startPos.y, endPos.x, endPos.y, 'permanent');
+                                    permanentLines.push({
+                                        line: line,
+                                        termId: termId,
+                                        defId: defId
+                                    });
+                                    document.getElementById('match-svg').appendChild(line);
+
+                                    submitAnswer(defId, true);
+
+                                    // Check nếu tất cả đều nối đúng
+                                    if (matchedPairs === flashcards.length) {
+                                        setTimeout(() => {
+                                            document.getElementById('match-feedback').classList.remove('hidden');
+                                            document.getElementById('match-score').textContent =
+                                                'Bạn đã nối đúng ' + score + '/' + flashcards.length + ' cặp!';
+                                            showResults();
+                                        }, 500);
+                                    }
+                                } else {
+                                    // Nối sai
+                                    const wrongTermElement = draggingCard.element;
+                                    wrongTermElement.classList.add('border-red-500', '!bg-red-50');
+                                    defCard.classList.add('border-red-500', '!bg-red-50');
+
+                                    setTimeout(() => {
+                                        wrongTermElement.classList.remove('border-red-500', '!bg-red-50');
+                                        defCard.classList.remove('border-red-500', '!bg-red-50');
+                                    }, 500);
+                                }
+                            }
+
+                            draggingCard = null;
+                            dragStartPos = null;
+                        }
+
+                        function getCardPoint(element, side) {
+                            const container = document.getElementById('match-game-container');
+                            const containerRect = container.getBoundingClientRect();
+                            const elementRect = element.getBoundingClientRect();
+
+                            const x = side === 'right'
+                                ? elementRect.right - containerRect.left
+                                : elementRect.left - containerRect.left;
+                            const y = elementRect.top - containerRect.top + elementRect.height / 2;
+
+                            return { x, y };
+                        }
+
+                        function createSVGLine(x1, y1, x2, y2, type) {
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            line.setAttribute('x1', x1);
+                            line.setAttribute('y1', y1);
+                            line.setAttribute('x2', x2);
+                            line.setAttribute('y2', y2);
+                            line.setAttribute('stroke', type === 'permanent' ? '#3b82f6' : '#3b82f6');
+                            line.setAttribute('stroke-width', '3');
+                            line.setAttribute('stroke-linecap', 'round');
+                            return line;
+                        }
+
+                        function updateAllLines() {
+                            permanentLines.forEach(lineData => {
+                                const termElement = document.getElementById('term-' + lineData.termId);
+                                const defElement = document.getElementById('def-' + lineData.defId);
+
+                                if (termElement && defElement) {
+                                    const startPos = getCardPoint(termElement, 'right');
+                                    const endPos = getCardPoint(defElement, 'left');
+
+                                    lineData.line.setAttribute('x1', startPos.x);
+                                    lineData.line.setAttribute('y1', startPos.y);
+                                    lineData.line.setAttribute('x2', endPos.x);
+                                    lineData.line.setAttribute('y2', endPos.y);
+                                }
+                            });
                         }
 
                         async function submitAnswer(flashcardId, isCorrect) {
@@ -434,6 +560,7 @@
 
                     <style>
                         @keyframes shake {
+
                             0%,
                             100% {
                                 transform: translateX(0);

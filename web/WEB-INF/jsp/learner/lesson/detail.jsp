@@ -10,7 +10,7 @@
                             <nav class="flex items-center text-sm text-gray-500 mb-4">
                                 <a href="${pageContext.request.contextPath}/lesson"
                                     class="hover:text-indigo-600 transition-colors">
-                                    <i class="fa-solid fa-book-open mr-1"></i> Nhóm Bài Học
+                                    <i class="fa-solid fa-book-open mr-1"></i> Nhóm bài học
                                 </a>
                                 <i class="fa-solid fa-chevron-right mx-2 text-xs"></i>
                                 <span class="text-gray-900 font-medium">${group.name}</span>

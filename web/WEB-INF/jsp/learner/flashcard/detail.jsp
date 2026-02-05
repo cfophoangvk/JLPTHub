@@ -204,11 +204,11 @@
                         //Dữ liệu tất cả các thẻ
                         const flashcardsData = {
                             <c:forEach var="card" items="${flashcards}" varStatus="loop">
-                                '${card.id}': {
-                                    term: '${card.term}',
-                                    definition: '${card.definition}',
+                            '${card.id}': {
+                            term: '${card.term}',
+                                definition: '${card.definition}',
                                     isFavorite: ${ favoriteIds.contains(card.id) }
-                                } <c:if test="${!loop.last}">,</c:if>
+                        } <c:if test="${!loop.last}">,</c:if>
                             </c:forEach>
                         };
                         //Sử dụng AJAX để gọi hàm trong servlet => đánh dấu thẻ
@@ -300,13 +300,14 @@
                         document.addEventListener('DOMContentLoaded', function () {
                             const carousel = document.getElementById('flashcard-carousel');
                             const counter = document.getElementById('card-counter');
-                            const totalCards = ${flashcards.size()};
-                            if (carousel && counter) {
-                                carousel.addEventListener('scroll', function () {
-                                    updateFlashcardProgress(carousel, counter, totalCards);
-                                });
-                                updateFlashcardProgress(carousel, counter, totalCards); //Cập nhật khi lần đầu load trang
-                            }
+                            const totalCards = ${ flashcards.size()
+                        };
+                        if (carousel && counter) {
+                            carousel.addEventListener('scroll', function () {
+                                updateFlashcardProgress(carousel, counter, totalCards);
+                            });
+                            updateFlashcardProgress(carousel, counter, totalCards); //Cập nhật khi lần đầu load trang
+                        }
                         });
                         //Cập nhật tiến trình trong bộ thẻ
                         function updateFlashcardProgress(carousel, counter, totalCards) {

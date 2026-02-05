@@ -91,9 +91,26 @@
                             </div>
                         </div>
                     </div>
+                                                
+                    <ui:alertDialog id="alert-question-form">
+                        <ui:alertDialogHeader>
+                            <ui:alertDialogTitle>Xác nhận</ui:alertDialogTitle>
+                            <ui:alertDialogDescription>
+                                Bạn có muốn cập nhật thông tin cá nhân?
+                            </ui:alertDialogDescription>
+                        </ui:alertDialogHeader>
+
+                        <ui:alertDialogFooter>
+                            <ui:alertDialogCancel>Hủy</ui:alertDialogCancel>
+                            <ui:alertDialogAction onclick="submitForm('userProfileForm')">
+                                OK
+                            </ui:alertDialogAction>
+                        </ui:alertDialogFooter>
+                    </ui:alertDialog>
+                                
                     <script>
                         const fullNameValidation = (value) => {
-                            if (!value) {
+                            if (!value.trim()) {
                                 return "Vui lòng điền họ và tên!";
                             }
                             return "";
@@ -104,7 +121,7 @@
                             isValid &= validateInput('fullName', fullNameValidation);
                             
                             if (isValid) {
-                                submitForm("userProfileForm");
+                                openDialog('alert-question-form');
                             }
                         };
                     </script>
