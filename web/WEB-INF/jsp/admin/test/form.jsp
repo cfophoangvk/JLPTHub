@@ -95,7 +95,7 @@
 
                     <script>
                         const titleValidation = (value) => {
-                            if (value.length <= 0) {
+                            if (value.trim().length <= 0) {
                                 return "Tiêu đề bài test là bắt buộc!";
                             } else if (value.length > 255) {
                                 return "Tiêu đề không được vượt quá 255 ký tự!";
@@ -103,9 +103,8 @@
                                 return "";
                         };
 
-                        const levelValidation = () => {
-                            const level = document.getElementById('level').value;
-                            if (!level) {
+                        const levelValidation = (value) => {
+                            if (!value.trim()) {
                                 return "Cấp độ là bắt buộc!";
                             }
                             return "";
@@ -114,14 +113,7 @@
                         const doValidation = () => {
                             let isValid = true;
                             isValid &= validateInput('title', titleValidation);
-
-                            const levelError = levelValidation();
-                            if (levelError) {
-                                const levelSelect = document.getElementById('level');
-                                levelSelect.classList.add('border-red-500');
-                                alert(levelError);
-                                isValid = false;
-                            }
+                            isValid &= validateSelect('level', levelValidation);
 
                             if (isValid) {
                                 openDialog('alert-test-form');

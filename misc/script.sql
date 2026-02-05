@@ -160,6 +160,18 @@ CREATE TABLE UserTestAnswer (
     CONSTRAINT FK_UTA_Option FOREIGN KEY (SelectedOptionId) REFERENCES QuestionOption(ID)
 );
 
+CREATE TABLE UserTestSectionResult (
+        ID int NOT NULL PRIMARY KEY IDENTITY(1,1),
+        UserTestResultId int NOT NULL,
+        SectionId int NOT NULL,
+        CorrectAnswers int NOT NULL,
+        TotalQuestions int NOT NULL,
+        ScoreObtained int NOT NULL,
+        IsPassed bit NOT NULL,
+        CONSTRAINT FK_UTSR_Result FOREIGN KEY (UserTestResultId) REFERENCES UserTestResult(ID) ON DELETE CASCADE,
+        CONSTRAINT FK_UTSR_Section FOREIGN KEY (SectionId) REFERENCES TestSection(ID)
+);
+
 INSERT [dbo].[FlashcardGroup] ([ID], [Name], [Description], [Level], [CreatedAt], [Status]) VALUES (N'73d8194a-b7f7-4a28-8d3c-145bef542dcd', N'N4 kanji', N'N4 KANJI FOR JLPT', N'N4', CAST(N'2026-01-16T13:11:21.650' AS DateTime), 1)
 GO
 INSERT [dbo].[FlashcardGroup] ([ID], [Name], [Description], [Level], [CreatedAt], [Status]) VALUES (N'0ffcd3db-b983-4a23-9325-493936c8f5a0', N'N5　かんじ', N'All N5 kanjis', N'N5', CAST(N'2026-01-15T21:36:54.213' AS DateTime), 1)
@@ -268,3 +280,88 @@ Meaning: Can i see the bag?', 1)
 GO
 INSERT [dbo].[GrammarPoint] ([ID], [LessonId], [Title], [Structure], [Explanation], [Example], [Status]) VALUES (N'638cf8e9-307e-435c-b1d6-dde879b3b0c4', N'368d78e5-312e-477b-9778-d0a5a524d93d', N'あいうえお', N'見てください', N'Please look at the explaination', N'', 1)
 GO
+SET IDENTITY_INSERT [dbo].[Test] ON 
+INSERT [dbo].[Test] ([ID], [Title], [Level], [CreatedAt], [Status]) VALUES (1, N'bài test số 1', N'N5', CAST(N'2026-02-05T15:07:06.710' AS DateTime), 1)
+SET IDENTITY_INSERT [dbo].[Test] OFF
+GO
+SET IDENTITY_INSERT [dbo].[TestSection] ON
+INSERT [dbo].[TestSection] ([ID], [TestId], [TimeLimitMinutes], [AudioUrl], [SectionType], [PassScore], [TotalScore], [Status]) VALUES (1, 1, 5, NULL, N'Moji/Goi', 10, 20, 1)
+INSERT [dbo].[TestSection] ([ID], [TestId], [TimeLimitMinutes], [AudioUrl], [SectionType], [PassScore], [TotalScore], [Status]) VALUES (2, 1, 5, NULL, N'Bunpou', 10, 20, 1)
+INSERT [dbo].[TestSection] ([ID], [TestId], [TimeLimitMinutes], [AudioUrl], [SectionType], [PassScore], [TotalScore], [Status]) VALUES (3, 1, 5, N'https://res.cloudinary.com/dnvp064it/video/upload/v1770279006/Tests/nay6spqpqui228udn1vb.mp4', N'Choukai', 10, 20, 1)
+SET IDENTITY_INSERT [dbo].[TestSection] OFF
+GO
+SET IDENTITY_INSERT [dbo].[UserTestResult] ON
+INSERT [dbo].[UserTestResult] ([ID], [UserId], [TestId], [ScoreObtained], [IsPassed], [TakenDate], [DurationSeconds]) VALUES (1, N'1e091681-fb2b-4a66-b0b4-99a97e70a330', 1, 60, 1, CAST(N'2026-02-05T15:17:55.790' AS DateTime), 69)
+INSERT [dbo].[UserTestResult] ([ID], [UserId], [TestId], [ScoreObtained], [IsPassed], [TakenDate], [DurationSeconds]) VALUES (2, N'1e091681-fb2b-4a66-b0b4-99a97e70a330', 1, 45, 1, CAST(N'2026-02-05T15:22:18.273' AS DateTime), 20)
+SET IDENTITY_INSERT [dbo].[UserTestResult] OFF
+GO
+SET IDENTITY_INSERT [dbo].[UserTestSectionResult] ON
+INSERT [dbo].[UserTestSectionResult] ([ID], [UserTestResultId], [SectionId], [CorrectAnswers], [TotalQuestions], [ScoreObtained], [IsPassed]) VALUES (1, 1, 1, 4, 4, 20, 1)
+INSERT [dbo].[UserTestSectionResult] ([ID], [UserTestResultId], [SectionId], [CorrectAnswers], [TotalQuestions], [ScoreObtained], [IsPassed]) VALUES (2, 1, 2, 2, 2, 20, 1)
+INSERT [dbo].[UserTestSectionResult] ([ID], [UserTestResultId], [SectionId], [CorrectAnswers], [TotalQuestions], [ScoreObtained], [IsPassed]) VALUES (3, 1, 3, 2, 2, 20, 1)
+INSERT [dbo].[UserTestSectionResult] ([ID], [UserTestResultId], [SectionId], [CorrectAnswers], [TotalQuestions], [ScoreObtained], [IsPassed]) VALUES (4, 2, 1, 3, 4, 15, 1)
+INSERT [dbo].[UserTestSectionResult] ([ID], [UserTestResultId], [SectionId], [CorrectAnswers], [TotalQuestions], [ScoreObtained], [IsPassed]) VALUES (5, 2, 2, 2, 2, 20, 1)
+INSERT [dbo].[UserTestSectionResult] ([ID], [UserTestResultId], [SectionId], [CorrectAnswers], [TotalQuestions], [ScoreObtained], [IsPassed]) VALUES (6, 2, 3, 1, 2, 10, 1)
+SET IDENTITY_INSERT [dbo].[UserTestSectionResult] OFF
+GO
+SET IDENTITY_INSERT [dbo].[Question] ON
+INSERT [dbo].[Question] ([ID], [SectionId], [Content], [ImageUrl]) VALUES (1, 1, N'What is this?', NULL)
+INSERT [dbo].[Question] ([ID], [SectionId], [Content], [ImageUrl]) VALUES (2, 1, N'What is that', NULL)
+INSERT [dbo].[Question] ([ID], [SectionId], [Content], [ImageUrl]) VALUES (3, 1, N'What is this thing', NULL)
+INSERT [dbo].[Question] ([ID], [SectionId], [Content], [ImageUrl]) VALUES (4, 1, N'What is that 123', NULL)
+INSERT [dbo].[Question] ([ID], [SectionId], [Content], [ImageUrl]) VALUES (5, 2, N'田中たなかさんは月曜日げつようびの 朝あさ 福岡ふくおかから東京とうきょうの 本社ほんしゃへ 行いきます', NULL)
+INSERT [dbo].[Question] ([ID], [SectionId], [Content], [ImageUrl]) VALUES (6, 2, N'本社ほんしゃから空港くうこうまて JRＪＲ で 30分です。', NULL)
+INSERT [dbo].[Question] ([ID], [SectionId], [Content], [ImageUrl]) VALUES (7, 3, N'1. What is the man''s name?', N'https://res.cloudinary.com/dnvp064it/image/upload/v1770279226/Tests/lpllffegcr3bfkgqmvm4.png')
+INSERT [dbo].[Question] ([ID], [SectionId], [Content], [ImageUrl]) VALUES (8, 3, N'2. What is indian thing', NULL)
+SET IDENTITY_INSERT [dbo].[Question] OFF
+GO
+SET IDENTITY_INSERT [dbo].[QuestionOption] ON
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (1, 1, N'1', NULL, 1)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (2, 1, N'2', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (3, 1, N'3', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (4, 1, N'4', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (5, 2, N'Koko', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (6, 2, N'Doko', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (7, 2, N'Soko', NULL, 1)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (8, 2, N'Asoko', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (9, 3, N'1', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (10, 3, N'2', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (11, 3, N'3', NULL, 1)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (12, 3, N'4', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (13, 4, N'1', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (14, 4, N'2', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (15, 4, N'3', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (16, 4, N'4', NULL, 1)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (17, 5, N'a', NULL, 1)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (18, 5, N'b', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (19, 5, N'c', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (20, 5, N'd', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (21, 6, N'a', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (22, 6, N'b', NULL, 1)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (23, 6, N'c', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (24, 7, N'Brian', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (25, 7, N'Adrian', NULL, 1)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (26, 7, N'Chloe', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (27, 8, N'Nothing beats', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (28, 8, N'Jet2 holiday', NULL, 0)
+INSERT [dbo].[QuestionOption] ([ID], [QuestionId], [Content], [ImageUrl], [IsCorrect]) VALUES (29, 8, N'WHY DO YOU REDEEM IT?', NULL, 1)
+SET IDENTITY_INSERT [dbo].[QuestionOption] OFF
+GO
+SET IDENTITY_INSERT [dbo].[UserTestAnswer] ON
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (1, 1, 1, 1, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (2, 1, 2, 7, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (3, 1, 3, 11, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (4, 1, 4, 16, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (5, 1, 5, 17, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (6, 1, 6, 22, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (7, 1, 7, 25, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (8, 1, 8, 29, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (9, 2, 1, 1, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (10, 2, 2, 6, 0)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (11, 2, 3, 11, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (12, 2, 4, 16, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (13, 2, 5, 17, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (14, 2, 6, 22, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (15, 2, 7, 25, 1)
+INSERT [dbo].[UserTestAnswer] ([ID], [UserTestResultId], [QuestionId], [SelectedOptionId], [IsCorrect]) VALUES (16, 2, 8, 27, 0)
+SET IDENTITY_INSERT [dbo].[UserTestAnswer] OFF

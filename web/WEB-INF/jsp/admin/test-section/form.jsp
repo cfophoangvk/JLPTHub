@@ -178,7 +178,7 @@
                         };
                         
                         const sectionTypeValidation = (value) => {
-                            if (!value) {
+                            if (!value.trim()) {
                                 return "Loại phần thi là bắt buộc!";
                             }
                             return "";
@@ -186,9 +186,9 @@
 
                         const doValidation = () => {
                             let isValid = true;
-                            isValid &= validateInput('sectionType', sectionTypeValidation);
+                            isValid &= validateSelect('sectionType', sectionTypeValidation);
 
-                            if (document.getElementById('sectionType').value === 'Choukai') {
+                            if (document.getElementById('sectionType-input').value === 'Choukai') {
                                 const audioInput = document.getElementById('audio');
                                 const existingAudio = document.querySelector('input[name="existingAudioUrl"]').value;
                                 const hasNewAudio = audioInput.files && audioInput.files.length > 0;

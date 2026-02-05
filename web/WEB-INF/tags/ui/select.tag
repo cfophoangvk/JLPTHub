@@ -12,4 +12,5 @@
     <c:set var="selectId" value="${id}" scope="request" /> 
     
     <jsp:doBody/>
+    <p class="text-sm text-red-500 hidden" id="error-${id}-input">Error Message</p>
 </div>

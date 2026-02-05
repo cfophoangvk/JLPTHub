@@ -60,15 +60,13 @@
                                         <input type="hidden" name="id" value="${currentUser.id}" />
                                         <div class="grid grid-cols-1 gap-6">
                                             <div>
-                                                <ui:label htmlFor="fullName" label="Họ và tên" />
-                                                <ui:input id="fullName" name="fullName"
-                                                    value="${currentUser.fullName}" />
+                                                <ui:label htmlFor="fullName" label="Họ và tên" required="true"/>
+                                                <ui:input id="fullName" name="fullName" value="${currentUser.fullName}" />
                                             </div>
 
                                             <div>
-                                                <ui:label htmlFor="targetLevel" label="Mục tiêu JLPT" />
-                                                <ui:select name="targetLevel" id="targetLevel"
-                                                    defaultValue="${currentUser.targetLevel}">
+                                                <ui:label htmlFor="targetLevel" label="Mục tiêu JLPT" required="true"/>
+                                                <ui:select name="targetLevel" id="targetLevel" defaultValue="${currentUser.targetLevel}">
                                                     <ui:selectTrigger
                                                         placeholder="${not empty currentUser.targetLevel ? currentUser.targetLevel : 'Chọn cấp độ'}"
                                                         className="w-full" />

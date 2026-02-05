@@ -177,6 +177,25 @@
                     return true;
                 }
             }
+            
+            function validateSelect (id, validationCallback) {
+                const inputEl = document.getElementById(id + "-input");
+                const errorEl = document.getElementById('error-' + id + "-input");
+
+                const errorMessage = validationCallback(inputEl.value);
+
+                if (errorMessage) {
+                    inputEl.classList.add('border-red-500');
+                    errorEl.classList.remove("hidden");
+                    errorEl.innerText = errorMessage;
+                    return false;
+                } else {
+                    inputEl.classList.remove('border-red-500');
+                    errorEl.classList.add("hidden");
+                    errorEl.innerText = "";
+                    return true;
+                }
+            }
 
             function submitForm (id) {
                 document.getElementById(id).submit();
@@ -394,6 +413,14 @@
                                 <i class="fa-solid fa-graduation-cap text-rose-500"></i>
                                 <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
                                     Các bài học
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="${pageContext.request.contextPath}/test" class="sidebar-link flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors leading-4 group hover:bg-rose-400 text-gray-600">
+                                <i class="fa-solid fa-file-pen text-rose-500"></i>
+                                <span class="sidebar-item whitespace-nowrap overflow-hidden transition-all duration-300 leading-7 w-40 ml-3">
+                                    Bài kiểm tra
                                 </span>
                             </a>
                         </li>
