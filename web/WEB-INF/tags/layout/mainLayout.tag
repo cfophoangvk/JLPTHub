@@ -150,7 +150,7 @@
                 }
             }
 
-            // Close a dialog by ID (or 'this')
+            // Close a dialog by element
             function closeDialog (element) {
                 const dialog = element.closest('dialog');
                 if (dialog) {

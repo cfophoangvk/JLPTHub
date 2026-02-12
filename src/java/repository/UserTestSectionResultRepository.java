@@ -81,10 +81,10 @@ public class UserTestSectionResultRepository {
         result.setTotalQuestions(rs.getInt("TotalQuestions"));
         result.setScoreObtained(rs.getInt("ScoreObtained"));
         result.setPassed(rs.getBoolean("IsPassed"));
-        try {
+        
+        String sectionType = rs.getString("SectionType");
+        if (sectionType != null) {
             result.setSectionType(rs.getString("SectionType"));
-        } catch (SQLException e) {
-            // SectionType might not be present in all queries
         }
         return result;
     }

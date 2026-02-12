@@ -14,7 +14,6 @@
                     <ui:card title="${not empty test ? 'Chỉnh sửa bài test' : 'Thêm bài test mới'}"
                         className="max-w-4xl mx-auto my-4 px-4 py-8">
 
-                        <!-- Breadcrumb -->
                         <nav class="flex mb-6" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                                 <li class="inline-flex items-center">
@@ -76,7 +75,6 @@
                         </form>
                     </ui:card>
 
-                    <!-- Confirmation Dialog -->
                     <ui:alertDialog id="alert-test-form">
                         <ui:alertDialogHeader>
                             <ui:alertDialogTitle>Xác nhận</ui:alertDialogTitle>

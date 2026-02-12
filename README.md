@@ -5,6 +5,6 @@ CÁC BƯỚC CHẠY PROJECT:
 4. Chạy project và đăng nhập:
 - Đăng ký/đăng nhập Google
 - Đăng ký admin:
-htlAdmin@example.com
-Htl180507*
+**Username:** htlAdmin@example.com,
+**Password:** Htl180507*
 - Thêm admin: Đăng ký bình thường xong chỉnh role về 2 (Admin)

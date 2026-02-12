@@ -11,8 +11,7 @@
                         </div>
                     </c:if>
 
-                    <ui:card title="${not empty question ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}"
-                        className="max-w-4xl mx-auto my-4 px-4 py-8">
+                    <ui:card title="${not empty question ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}" className="max-w-4xl mx-auto my-4 px-4 py-8">
 
                         <nav class="flex mb-6" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -99,16 +98,13 @@
                             </div>
 
                             <div class="mb-4">
-                                <ui:label label="Câu trả lời: (Tích vào ô nếu là câu trả lời đúng)" htmlFor=""
-                                    required="true" />
+                                <ui:label label="Câu trả lời: (Tích vào ô nếu là câu trả lời đúng)" htmlFor="" required="true" />
                                 <div id="answer-container">
                                     <div class="flex mb-2 space-x-2 items-center" id="answerItem-0">
-                                        <input type="checkbox"
+                                        <input type="radio"
                                             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                            name="answerIsCorrect"
-                                            onchange="this.setAttribute('checked', this.checked)" />
-                                        <div
-                                            class="w-36 h-36 relative overflow-hidden rounded-lg border border-gray-300">
+                                            name="answerIsCorrect" />
+                                        <div class="w-36 h-36 relative overflow-hidden rounded-lg border border-gray-300">
                                             <button id="remove-image-0" type="button"
                                                 class="absolute top-2 right-2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100 transition-colors z-10 hidden"
                                                 onclick="removeImage(0)">
@@ -116,8 +112,7 @@
                                                     <jsp:param name="size" value="4" />
                                                 </jsp:include>
                                             </button>
-                                            <input type="file" class="hidden" id="file-input-0" name="answerImage"
-                                                accept="image/*" onchange="previewImage(event, this.id)">
+                                            <input type="file" class="hidden" id="file-input-0" name="answerImage" accept="image/*" onchange="previewImage(event, this.id)">
 
                                             <label for="file-input-0" class="cursor-pointer w-full h-full block">
                                                 <div id="image-fallback-0"
@@ -217,7 +212,7 @@
                             });
 
                             if (!hasCorrectAnswer) {
-                                document.getElementById("error-isCorrect").innerText = "Câu hỏi phải có ít nhất 1 câu trả lời đúng!";
+                                document.getElementById("error-isCorrect").innerText = "Câu hỏi phải có câu trả lời đúng!";
                                 isValid = false;
                             } else {
                                 document.getElementById("error-isCorrect").innerText = "";
@@ -240,7 +235,7 @@
 
                         const addAnswer = () => {
                             const answerElement = `<div class="flex mb-2 space-x-2 items-center" id="answerItem-\${answerItemCount}">
-                                <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" name="answerIsCorrect" onchange="this.setAttribute('checked', this.checked)">
+                                <input type="radio" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" name="answerIsCorrect">
                                 <div class="w-36 h-36 relative overflow-hidden rounded-lg border border-gray-300">
                                   <button id="remove-image-\${answerItemCount}" type="button" class="absolute top-2 right-2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100 transition-colors z-10 hidden" onclick="removeImage(\${answerItemCount})">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"

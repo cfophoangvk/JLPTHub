@@ -5,7 +5,6 @@
 
                 <layout:mainLayout>
                     <div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-                        <!-- Header -->
                         <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
                             <div class="max-w-5xl mx-auto px-6 py-4">
                                 <div class="flex items-center justify-between">
@@ -24,15 +23,11 @@
                             </div>
                         </div>
 
-                        <!-- Section Tabs -->
                         <div class="bg-white border-b border-gray-200 sticky top-[72px] z-30">
                             <div class="max-w-5xl mx-auto px-6">
                                 <div class="flex space-x-1" id="section-tabs">
                                     <c:forEach var="section" items="${sections}" varStatus="status">
-                                        <button type="button" onclick="switchSection(${status.index})"
-                                            id="tab-${status.index}"
-                                            class="section-tab px-6 py-3 font-medium text-sm rounded-t-lg transition-colors
-                                ${status.index == 0 ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+                                        <button type="button" id="tab-${status.index}" class="section-tab px-6 py-3 font-medium text-sm rounded-t-lg transition-colors ${status.index == 0 ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-600'}">
                                             <c:choose>
                                                 <c:when test="${section.sectionType == 'Moji/Goi'}">
                                                     <i class="fa-solid fa-language mr-2"></i>
@@ -51,7 +46,6 @@
                             </div>
                         </div>
 
-                        <!-- Test Form -->
                         <form id="testForm" action="${pageContext.request.contextPath}/test/submit" method="POST">
                             <input type="hidden" name="testId" value="${test.id}" />
                             <input type="hidden" name="duration" id="durationInput" value="0" />
@@ -61,7 +55,6 @@
                                     <div id="section-${sectionStatus.index}"
                                         class="section-content ${sectionStatus.index == 0 ? '' : 'hidden'}">
 
-                                        <!-- Section Info -->
                                         <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                                             <div class="flex items-center justify-between">
                                                 <div>
@@ -78,7 +71,6 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Audio for Choukai (hidden, auto-play) -->
                                             <c:if
                                                 test="${section.sectionType == 'Choukai' && not empty section.audioUrl}">
                                                 <audio id="audio-${sectionStatus.index}" src="${section.audioUrl}"
@@ -86,7 +78,6 @@
                                             </c:if>
                                         </div>
 
-                                        <!-- Questions -->
                                         <c:set var="questions" value="${sectionQuestions[section.id]}" />
                                         <c:forEach var="question" items="${questions}" varStatus="qStatus">
                                             <div class="bg-white rounded-xl shadow-lg p-6 mb-4 question-card">
@@ -131,26 +122,13 @@
                                             </div>
                                         </c:forEach>
 
-                                        <!-- Section Navigation -->
-                                        <div class="flex justify-between items-center mt-8">
-                                            <c:if test="${sectionStatus.index > 0}">
-                                                <button type="button"
-                                                    onclick="switchSection(${sectionStatus.index - 1})"
-                                                    class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors">
-                                                    <i class="fa-solid fa-arrow-left mr-2"></i>
-                                                    Phần trước
-                                                </button>
-                                            </c:if>
-                                            <c:if test="${sectionStatus.index == 0}">
-                                                <div></div>
-                                            </c:if>
-
+                                        <div class="flex justify-end items-center mt-8">
                                             <c:choose>
                                                 <c:when test="${sectionStatus.index < sections.size() - 1}">
                                                     <button type="button"
-                                                        onclick="switchSection(${sectionStatus.index + 1})"
+                                                        onclick="openDialog('complete-section-confirm')"
                                                         class="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-lg transition-colors">
-                                                        Phần tiếp theo
+                                                        Hoàn thành
                                                         <i class="fa-solid fa-arrow-right ml-2"></i>
                                                     </button>
                                                 </c:when>
@@ -167,8 +145,25 @@
                                 </c:forEach>
                             </div>
                         </form>
+                            
+                        <ui:alertDialog id="complete-section-confirm">
+                            <ui:alertDialogHeader>
+                                <ui:alertDialogTitle>Xác nhận hoàn thành</ui:alertDialogTitle>
+                                <ui:alertDialogDescription>
+                                    <div class="text-center text-muted-foreground">
+                                        Bạn có chắc chắn muốn hoàn thành phần thi?<br />
+                                        <span class="text-amber-600 font-semibold">Không thể quay lại phần thi này.</span>
+                                    </div>
+                                </ui:alertDialogDescription>
+                            </ui:alertDialogHeader>
+                            <ui:alertDialogFooter>
+                                <ui:alertDialogCancel>Hủy</ui:alertDialogCancel>
+                                <ui:alertDialogAction onclick="nextSection();closeDialog(this);">
+                                    Phần tiếp theo
+                                </ui:alertDialogAction>
+                            </ui:alertDialogFooter>
+                        </ui:alertDialog>
 
-                        <!-- Submit Confirmation Dialog -->
                         <ui:alertDialog id="submit-confirm">
                             <ui:alertDialogHeader>
                                 <ui:alertDialogTitle>Xác nhận nộp bài</ui:alertDialogTitle>
@@ -181,8 +176,8 @@
                                 </ui:alertDialogDescription>
                             </ui:alertDialogHeader>
                             <ui:alertDialogFooter>
-                                <ui:alertDialogCancel>Tiếp tục làm bài</ui:alertDialogCancel>
-                                <ui:alertDialogAction onclick="submitForm('testForm')">
+                                <ui:alertDialogCancel>Hủy</ui:alertDialogCancel>
+                                <ui:alertDialogAction onclick="submitAnswers()">
                                     Nộp bài
                                 </ui:alertDialogAction>
                             </ui:alertDialogFooter>
@@ -205,36 +200,34 @@
                         }
                         setInterval(updateTimer, 1000);
 
-                        function switchSection(index) {
-                            // Stop any playing audio
+                        function nextSection() {
+                            //Disable nút section vừa làm
+                            document.getElementById('tab-' + currentSection).disabled = true;
+                            document.getElementById('tab-' + currentSection).classList.add('cursor-not-allowed');
+                            currentSection++;
+                            
                             const allAudios = document.querySelectorAll('audio');
                             allAudios.forEach(audio => {
                                 audio.pause();
                                 audio.currentTime = 0;
                             });
 
-                            // Hide all sections
                             document.querySelectorAll('.section-content').forEach(el => el.classList.add('hidden'));
                             document.querySelectorAll('.section-tab').forEach(el => {
                                 el.classList.remove('bg-indigo-500', 'text-white');
                                 el.classList.add('bg-gray-100', 'text-gray-600');
                             });
 
-                            // Show selected section
-                            document.getElementById('section-' + index).classList.remove('hidden');
-                            const tab = document.getElementById('tab-' + index);
+                            document.getElementById('section-' + currentSection).classList.remove('hidden');
+                            const tab = document.getElementById('tab-' + currentSection);
                             tab.classList.remove('bg-gray-100', 'text-gray-600');
                             tab.classList.add('bg-indigo-500', 'text-white');
 
-                            currentSection = index;
-
-                            // Auto-play audio for Choukai section
-                            const audio = document.getElementById('audio-' + index);
+                            const audio = document.getElementById('audio-' + currentSection);
                             if (audio) {
                                 audio.play().catch(e => console.log('Audio autoplay blocked:', e));
                             }
 
-                            // Scroll to top
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
 
@@ -242,10 +235,8 @@
                             openDialog('submit-confirm');
                         }
 
-                        // Style selected options
                         document.querySelectorAll('.option-label input[type="radio"]').forEach(radio => {
                             radio.addEventListener('change', function () {
-                                // Remove selected style from siblings
                                 const parent = this.closest('.space-y-3');
                                 parent.querySelectorAll('.option-label').forEach(label => {
                                     label.classList.remove('border-indigo-500', 'bg-indigo-50');
@@ -259,7 +250,6 @@
                             });
                         });
 
-                        // Save answers to localStorage periodically
                         function saveAnswers() {
                             const formData = new FormData(document.getElementById('testForm'));
                             const answers = {};
@@ -271,7 +261,6 @@
                             localStorage.setItem('test_${test.id}_answers', JSON.stringify(answers));
                         }
 
-                        // Restore answers from localStorage
                         function restoreAnswers() {
                             const saved = localStorage.getItem('test_${test.id}_answers');
                             if (saved) {
@@ -286,15 +275,13 @@
                             }
                         }
 
-                        // Auto-save every 10 seconds
                         setInterval(saveAnswers, 10000);
 
-                        // Restore on page load
                         document.addEventListener('DOMContentLoaded', restoreAnswers);
 
-                        // Clear saved answers on submit
-                        document.getElementById('testForm').addEventListener('submit', function () {
+                        function submitAnswers() {
                             localStorage.removeItem('test_${test.id}_answers');
-                        });
+                            submitForm('testForm');
+                        }
                     </script>
                 </layout:mainLayout>

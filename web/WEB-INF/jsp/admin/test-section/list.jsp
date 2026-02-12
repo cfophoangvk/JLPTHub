@@ -151,14 +151,12 @@
                             </ui:table>
                         </div>
 
-                        <!-- Delete Form -->
                         <form id="deleteForm" action="${pageContext.request.contextPath}/admin/test-sections/delete"
                             method="POST">
                             <input type="hidden" name="id" id="deleteSectionId" value="" />
                             <input type="hidden" name="testId" value="${test.id}" />
                         </form>
 
-                        <!-- Delete Confirmation Dialog -->
                         <ui:alertDialog id="alert-section">
                             <ui:alertDialogHeader>
                                 <ui:alertDialogTitle>Xác nhận xóa</ui:alertDialogTitle>

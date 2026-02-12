@@ -21,7 +21,6 @@
                                 </ui:button>
                             </div>
 
-                            <!-- Level Filter -->
                             <div class="mb-6">
                                 <form id="levelForm" method="GET"
                                     action="${pageContext.request.contextPath}/admin/tests"
@@ -144,13 +143,11 @@
                                 </ui:table>
                             </div>
 
-                            <!-- Delete Form -->
                             <form id="deleteForm" action="${pageContext.request.contextPath}/admin/tests/delete"
                                 method="POST">
                                 <input type="hidden" name="id" id="deleteTestId" value="" />
                             </form>
 
-                            <!-- Delete Confirmation Dialog -->
                             <ui:alertDialog id="alert-test">
                                 <ui:alertDialogHeader>
                                     <ui:alertDialogTitle>Xác nhận xóa</ui:alertDialogTitle>
