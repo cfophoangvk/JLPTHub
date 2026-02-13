@@ -41,6 +41,21 @@ public class TestSectionRepository {
         return null;
     }
 
+    public List<String> getCurrentTestSections(int testId) {
+        List<String> list = new ArrayList<>();
+        String sql = "SELECT SectionType FROM TestSection WHERE TestId = ? AND Status = 1";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, testId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(rs.getString("SectionType"));
+            }
+        } catch (SQLException e) {
+            ExceptionLogger.logError(TestSectionRepository.class.getName(), "findById", "Error finding section by ID: " + e.getMessage());
+        }
+        return list;
+    }
+
     public boolean save(TestSection section) {
         String sql = "INSERT INTO TestSection (TestId, TimeLimitMinutes, AudioUrl, SectionType, PassScore, TotalScore, Status) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -66,14 +81,13 @@ public class TestSectionRepository {
     }
 
     public boolean update(TestSection section) {
-        String sql = "UPDATE TestSection SET TimeLimitMinutes = ?, AudioUrl = ?, SectionType = ?, PassScore = ?, TotalScore = ? WHERE ID = ?";
+        String sql = "UPDATE TestSection SET TimeLimitMinutes = ?, AudioUrl = ?, PassScore = ?, TotalScore = ? WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, section.getTimeLimitMinutes());
             stmt.setString(2, section.getAudioUrl());
-            stmt.setString(3, section.getSectionType());
-            stmt.setInt(4, section.getPassScore());
-            stmt.setInt(5, section.getTotalScore());
-            stmt.setInt(6, section.getId());
+            stmt.setInt(3, section.getPassScore());
+            stmt.setInt(4, section.getTotalScore());
+            stmt.setInt(5, section.getId());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             ExceptionLogger.logError(TestSectionRepository.class.getName(), "update", "Error updating section: " + e.getMessage());

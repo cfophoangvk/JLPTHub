@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @WebServlet(name = "AdminQuestionServlet", urlPatterns = {
     "/admin/questions",
@@ -165,8 +166,13 @@ public class AdminQuestionServlet extends HttpServlet {
                     TestSection section = sectionService.findById(question.getSectionId());
                     Test test = testService.findById(section.getTestId());
                     List<QuestionOption> options = optionService.findAllByQuestionId(id);
+                    int correctOption = IntStream.range(0, options.size())
+                        .filter(i -> options.get(i).isCorrect())
+                        .findFirst()
+                        .orElse(0);
                     request.setAttribute("question", question);
                     request.setAttribute("options", options);
+                    request.setAttribute("correctOption", correctOption);
                     request.setAttribute("test", test);
                     request.setAttribute("section", section);
                     request.setAttribute("sectionId", String.valueOf(question.getSectionId()));
@@ -219,11 +225,11 @@ public class AdminQuestionServlet extends HttpServlet {
         String sectionIdStr = request.getParameter("sectionId");
         String content = request.getParameter("content");
         Part imagePart = request.getPart("image");
-        ArrayList<String> answerIsCorrectIndexes = new ArrayList<>(Arrays.asList(request.getParameterValues("answerIsCorrect")));
+        String answerIsCorrectIndexStr = request.getParameter("answerIsCorrect");
         String[] answerContents = request.getParameterValues("answerContent");
         Collection<Part> answerImageParts = request.getParts().stream().filter(p -> p.getName().contains("answerImage")).collect(Collectors.toCollection(ArrayList::new));
 
-        if (answerIsCorrectIndexes.isEmpty()) {
+        if (answerIsCorrectIndexStr == null || answerIsCorrectIndexStr.isEmpty()) {
             request.setAttribute("error", "Không có câu trả lời đúng!");
             showCreateForm(request, response);
             return;
@@ -250,6 +256,15 @@ public class AdminQuestionServlet extends HttpServlet {
             showCreateForm(request, response);
             return;
         }
+        
+        int answerIsCorrectIndex;
+        try {
+            answerIsCorrectIndex = Integer.parseInt(answerIsCorrectIndexStr);
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Câu trả lời đúng không hợp lệ!");
+            showCreateForm(request, response);
+            return;
+        }
 
         //upload ảnh lên cloud
         String questionImageUrl = cloudinaryService.uploadImage(imagePart, BaseURL.CLOUDINARY_TEST_FOLDER);
@@ -268,12 +283,7 @@ public class AdminQuestionServlet extends HttpServlet {
             QuestionOption qo = new QuestionOption();
             qo.setContent(answerContents[i]);
             qo.setImageUrl(answerImageUrls.get(i));
-
-            if (answerIsCorrectIndexes.contains(String.valueOf(i))) {
-                qo.setCorrect(true);
-            } else {
-                qo.setCorrect(false);
-            }
+            qo.setCorrect(i == answerIsCorrectIndex);
 
             questionOptions.add(qo);
         }
@@ -303,11 +313,8 @@ public class AdminQuestionServlet extends HttpServlet {
         String[] answerContents = request.getParameterValues("answerContent");
         String[] existingOptionImageUrls = request.getParameterValues("existingOptionImageUrl");
         String deletedOptionIdsStr = request.getParameter("deletedOptionIds");
-        ArrayList<String> answerIsCorrectIndexes = new ArrayList<>();
-        String[] correctValues = request.getParameterValues("answerIsCorrect");
-        if (correctValues != null) {
-            answerIsCorrectIndexes.addAll(Arrays.asList(correctValues));
-        }
+        String answerIsCorrectIndexStr = request.getParameter("answerIsCorrect");
+
         Collection<Part> answerImageParts = request.getParts().stream()
                 .filter(p -> p.getName().equals("answerImage"))
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -327,6 +334,15 @@ public class AdminQuestionServlet extends HttpServlet {
             id = Integer.parseInt(idStr);
         } catch (NumberFormatException e) {
             request.setAttribute("error", "Câu hỏi không hợp lệ.");
+            listQuestions(request, response);
+            return;
+        }
+        
+        int answerIsCorrectIndex;
+        try {
+            answerIsCorrectIndex = Integer.parseInt(answerIsCorrectIndexStr);
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Câu trả lời đúng không hợp lệ!");
             listQuestions(request, response);
             return;
         }
@@ -367,27 +383,24 @@ public class AdminQuestionServlet extends HttpServlet {
                     String optContent = answerContents[i];
                     String existingOptImageUrl = (existingOptionImageUrls != null && i < existingOptionImageUrls.length) ? existingOptionImageUrls[i] : null;
                     Part optImagePart = (i < imagePartsList.size()) ? imagePartsList.get(i) : null;
-                    boolean isCorrect = answerIsCorrectIndexes.contains(String.valueOf(i));
 
                     String optImageUrl = optionService.getUpdatedImageUrl(optImagePart, existingOptImageUrl);
 
                     if ("new".equals(optionIdStr)) {
-                        // Create new option
                         QuestionOption newOption = new QuestionOption();
                         newOption.setQuestionId(id);
                         newOption.setContent(optContent);
                         newOption.setImageUrl(optImageUrl);
-                        newOption.setCorrect(isCorrect);
+                        newOption.setCorrect(i == answerIsCorrectIndex);
                         optionService.save(newOption);
                     } else {
-                        // Update existing option
                         try {
                             int existingOptionId = Integer.parseInt(optionIdStr);
                             QuestionOption existingOption = optionService.findById(existingOptionId);
                             if (existingOption != null) {
                                 existingOption.setContent(optContent);
                                 existingOption.setImageUrl(optImageUrl);
-                                existingOption.setCorrect(isCorrect);
+                                existingOption.setCorrect(i == answerIsCorrectIndex);
                                 optionService.update(existingOption);
                             }
                         } catch (NumberFormatException e) {

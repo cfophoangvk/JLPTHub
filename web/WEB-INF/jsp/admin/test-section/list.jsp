@@ -87,7 +87,7 @@
                                             <ui:td>
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                                                     <c:choose>
-                                                        <c:when test=" ${section.sectionType=='Moji/Goi'
+                                                        <c:when test="${section.sectionType=='Moji/Goi'
                                                     }">bg-purple-100 text-purple-800</c:when>
                                                     <c:when test="${section.sectionType == 'Bunpou'}">bg-blue-100
                                                         text-blue-800</c:when>

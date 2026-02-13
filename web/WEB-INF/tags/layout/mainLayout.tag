@@ -161,21 +161,31 @@
 
             function validateInput (id, validationCallback) {
                 const inputEl = document.getElementById(id);
-                const errorEl = document.getElementById('error-' + id);
-
                 const errorMessage = validationCallback(inputEl.value);
 
                 if (errorMessage) {
-                    inputEl.classList.add('border-red-500');
-                    errorEl.classList.remove("hidden");
-                    errorEl.innerText = errorMessage;
+                    showError(id, errorMessage);
                     return false;
                 } else {
-                    inputEl.classList.remove('border-red-500');
-                    errorEl.classList.add("hidden");
-                    errorEl.innerText = "";
+                    hideError(id);
                     return true;
                 }
+            }
+            
+            function showError(id, errorMsg) {
+                const inputEl = document.getElementById(id);
+                const errorEl = document.getElementById('error-' + id);
+                inputEl.classList.add('border-red-500');
+                errorEl.classList.remove("hidden");
+                errorEl.innerText = errorMsg;
+            }
+            
+            function hideError(id) {
+                const inputEl = document.getElementById(id);
+                const errorEl = document.getElementById('error-' + id);
+                inputEl.classList.remove('border-red-500');
+                errorEl.classList.add("hidden");
+                errorEl.innerText = "";
             }
             
             function validateSelect (id, validationCallback) {

@@ -96,10 +96,9 @@
                             </div>
 
                             <div class="mb-4">
-                                <ui:label label="Câu trả lời: (Tích vào ô nếu là câu trả lời đúng)" htmlFor=""
-                                    required="true" />
+                                <ui:label label="Câu trả lời: (Tích vào ô nếu là câu trả lời đúng)" htmlFor="" required="true" />
+                                <input type="hidden" name="answerIsCorrect" value="${correctOption}">
                                 <div id="answer-container">
-                                    <!-- Existing options -->
                                     <c:forEach items="${options}" var="option" varStatus="status">
                                         <div class="flex mb-2 space-x-2 items-center"
                                             id="answerItem-existing-${option.id}">
@@ -109,7 +108,7 @@
                                                     value="${option.imageUrl}" />
                                                 <input type="radio"
                                                     class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                                    name="answerIsCorrect" ${option.correct ? 'checked' : '' }
+                                                    name="answerOption" ${option.correct ? 'checked' : '' }
                                                     onchange="this.setAttribute('checked', this.checked)" />
                                                 <div
                                                     class="w-36 h-36 relative overflow-hidden rounded-lg border border-gray-300">
@@ -140,10 +139,9 @@
                                                     </label>
                                                 </div>
                                                 <div class="flex-1">
-                                                    <ui:textarea name="answerContent" placeholder="Nhập câu trả lời..."
-                                                        className="h-36 resize-none"
-                                                        onInput="this.innerText=this.value">${option.content}
-                                                    </ui:textarea>
+                                                    <ui:textarea id="answerContent-${option.id}" name="answerContent"
+                                                        placeholder="Nhập câu trả lời..." className="h-36 resize-none"
+                                                        onInput="this.innerText=this.value">${option.content}</ui:textarea>
                                                 </div>
                                                 <button type="button"
                                                     class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 text-red-500 hover:text-red-700"
@@ -158,6 +156,7 @@
                                         </div>
                                     </c:forEach>
                                 </div>
+                                <p class="text-sm text-red-500" id="error-notEnoughAns"></p>
 
                                 <ui:button className="space-x-2" onclick="addAnswer()">
                                     <jsp:include page="/assets/icon/plus.jsp">
@@ -196,12 +195,18 @@
                     </ui:alertDialog>
 
                     <script>
-                        // Track deleted option IDs
                         let deletedOptionIds = [];
 
                         const contentValidation = (value) => {
-                            if (value.length <= 0) {
+                            if (value.trim().length <= 0) {
                                 return "Nội dung câu hỏi là bắt buộc!";
+                            }
+                            return "";
+                        };
+
+                        const answerValidation = (value) => {
+                            if (value.trim().length <= 0) {
+                                return "Câu trả lời là bắt buộc!";
                             }
                             return "";
                         };
@@ -209,6 +214,18 @@
                         const doValidation = () => {
                             let isValid = true;
                             isValid &= validateInput('questionContent', contentValidation);
+                            Array.from(document.querySelectorAll('textarea[name="answerContent"]')).forEach(el => {
+                                const id = el.id;
+                                isValid &= validateInput(id, answerValidation);
+                            });
+
+                            let numberOfAnswers = document.getElementById("answer-container").children.length;
+                            if (numberOfAnswers < 2) {
+                                document.getElementById("error-notEnoughAns").innerText = "Phải có ít nhất 2 đáp án!";
+                                isValid = false;
+                            } else {
+                                document.getElementById("error-notEnoughAns").innerText = "";
+                            }
 
                             if (isValid) {
                                 openDialog('alert-question-form');
@@ -216,13 +233,11 @@
                         };
 
                         const prepareForSubmit = () => {
-                            // Set deleted option IDs
                             document.getElementById('deletedOptionIds').value = deletedOptionIds.join(',');
 
-                            // Update checkbox values with their indices
-                            const isCorrectCheckboxes = document.querySelectorAll("input[name='answerIsCorrect']");
-                            Array.from(isCorrectCheckboxes).forEach((c, index) => {
-                                c.value = index;
+                            const isCorrectRadios = document.querySelectorAll("input[name='answerOption']");
+                            Array.from(isCorrectRadios).forEach((c, index) => {
+                                if (c.checked) document.querySelector("input[name='answerIsCorrect']").value = index;
                             });
                             submitForm('question-form');
                         };
@@ -233,7 +248,7 @@
                             const answerElement = `<div class="flex mb-2 space-x-2 items-center" id="answerItem-new-\${answerItemCount}">
                                 <input type="hidden" name="optionId" value="new" />
                                 <input type="hidden" name="existingOptionImageUrl" value="" />
-                                <input type="radio" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" name="answerIsCorrect" onchange="this.setAttribute('checked', this.checked)">
+                                <input type="radio" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" name="answerOption" onchange="this.setAttribute('checked', this.checked)">
                                 <div class="w-36 h-36 relative overflow-hidden rounded-lg border border-gray-300">
                                   <button id="remove-image-new-\${answerItemCount}" type="button" class="absolute top-2 right-2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100 transition-colors z-10 hidden" onclick="removeImage('new-\${answerItemCount}')">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -253,6 +268,7 @@
                                 </div>
                                 <div class="flex-1">
                                   <textarea name="answerContent" id="answer-new-\${answerItemCount}" oninput="this.innerText=this.value" placeholder="Nhập câu trả lời..." rows="3" class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 h-36 resize-none"></textarea>
+                                  <p class="text-sm text-red-500 hidden" id="error-answer-new-\${answerItemCount}">Câu trả lời là bắt buộc!</p>
                                 </div>
                                 <button type="button" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 text-red-500 hover:text-red-700" onclick="removeNewAnswer('new-\${answerItemCount}')">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -266,12 +282,10 @@
                             answerItemCount++;
                         };
 
-                        // Remove newly added answer (not in database yet)
                         const removeNewAnswer = (id) => {
                             document.getElementById("answerItem-" + id).remove();
                         };
 
-                        // Remove existing answer (mark for deletion)
                         const removeExistingAnswer = (optionId) => {
                             deletedOptionIds.push(optionId);
                             document.getElementById("answerItem-existing-" + optionId).remove();
@@ -298,7 +312,6 @@
                             document.getElementById("image-fallback-" + id).classList.remove("hidden");
                             document.getElementById("image-preview-" + id).classList.add("hidden");
 
-                            // Clear the existing image URL hidden field if it's an existing option
                             const answerItem = document.getElementById("answerItem-" + id);
                             if (answerItem) {
                                 const hiddenField = answerItem.querySelector('input[name="existingOptionImageUrl"]');

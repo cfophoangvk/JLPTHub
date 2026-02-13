@@ -3,6 +3,7 @@ package controller;
 import common.constant.BaseURL;
 import common.constant.Configuration;
 import common.constant.RoleConstant;
+import common.constant.SectionTypeConstant;
 import common.logger.ExceptionLogger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -35,9 +36,6 @@ public class AdminTestSectionServlet extends HttpServlet {
     private final TestService testService = new TestService();
     private final TestSectionService sectionService = new TestSectionService();
     private final CloudinaryService cloudinaryService = new CloudinaryService();
-
-    // Section types
-    private static final String[] SECTION_TYPES = {"Moji/Goi", "Bunpou", "Choukai"};
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -135,7 +133,7 @@ public class AdminTestSectionServlet extends HttpServlet {
                 Test test = testService.findById(testId);
                 request.setAttribute("test", test);
                 request.setAttribute("testId", testIdStr);
-                request.setAttribute("sectionTypes", SECTION_TYPES);
+                request.setAttribute("sectionTypes", sectionService.getMissingTestSections(testId));
                 request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/test-section/form.jsp").forward(request, response);
             } catch (NumberFormatException e) {
                 response.sendRedirect(request.getContextPath() + "/admin/tests");
@@ -156,7 +154,7 @@ public class AdminTestSectionServlet extends HttpServlet {
                     request.setAttribute("section", section);
                     request.setAttribute("test", test);
                     request.setAttribute("testId", String.valueOf(section.getTestId()));
-                    request.setAttribute("sectionTypes", SECTION_TYPES);
+                    request.setAttribute("sectionTypes", new String[]{ section.getSectionType() }); //Không cho edit.
                     request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/test-section/form.jsp").forward(request, response);
                     return;
                 }
@@ -321,7 +319,7 @@ public class AdminTestSectionServlet extends HttpServlet {
                 request.setAttribute("error", "Không thể cập nhật phần thi. Vui lòng thử lại.");
                 request.setAttribute("section", section);
                 request.setAttribute("testId", String.valueOf(section.getTestId()));
-                request.setAttribute("sectionTypes", SECTION_TYPES);
+                request.setAttribute("sectionTypes", SectionTypeConstant.SECTION_TYPES);
                 request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/test-section/form.jsp").forward(request, response);
             }
         } else {

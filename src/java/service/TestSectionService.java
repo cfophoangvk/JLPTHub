@@ -1,6 +1,9 @@
 package service;
 
+import common.constant.SectionTypeConstant;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import model.TestSection;
 import repository.TestSectionRepository;
 
@@ -15,21 +18,29 @@ public class TestSectionService {
         return sectionRepository.findById(id);
     }
     
+    public List<String> getCurrentTestSections(int testId) {
+        return sectionRepository.getCurrentTestSections(testId);
+    }
+    
+    public List<String> getMissingTestSections(int testId) {
+        List<String> currentSections = getCurrentTestSections(testId);
+        List<String> allSections = Arrays.asList(SectionTypeConstant.SECTION_TYPES);
+        return allSections.stream().filter(section -> !currentSections.contains(section)).collect(Collectors.toList());
+    }
+    
     public boolean save(TestSection section) {
-        // Validate Choukai section must have audio
         if ("Choukai".equalsIgnoreCase(section.getSectionType())) {
             if (section.getAudioUrl() == null || section.getAudioUrl().trim().isEmpty()) {
-                return false; // Choukai requires audio
+                return false;
             }
         }
         return sectionRepository.save(section);
     }
     
     public boolean update(TestSection section) {
-        // Validate Choukai section must have audio
         if ("Choukai".equalsIgnoreCase(section.getSectionType())) {
             if (section.getAudioUrl() == null || section.getAudioUrl().trim().isEmpty()) {
-                return false; // Choukai requires audio
+                return false;
             }
         }
         return sectionRepository.update(section);

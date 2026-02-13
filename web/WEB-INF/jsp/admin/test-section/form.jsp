@@ -61,10 +61,11 @@
 
                             <div class="mb-4">
                                 <ui:label label="Loại phần thi" htmlFor="sectionType" required="true" />
-                                <ui:select name="sectionType" id="sectionType" defaultValue="${section.sectionType}" onChange="toggleAudioRequired">
+                                <ui:select name="sectionType" id="sectionType" defaultValue="${section.sectionType}"
+                                    onChange="toggleAudioRequired">
                                     <ui:selectTrigger
-                                        placeholder="${not empty type ? type : 'Chọn loại phần thi'}"
-                                        className="w-full" />
+                                        placeholder="${not empty section.sectionType ? section.sectionType : 'Chọn loại phần thi'}"
+                                        className="w-full" disabled="${not empty section}" />
                                     <ui:selectContent>
                                         <c:forEach items="${sectionTypes}" var="type">
                                             <ui:selectItem value="${type}">${type}</ui:selectItem>
@@ -75,23 +76,21 @@
 
                             <div class="grid grid-cols-3 gap-4 mb-4">
                                 <div>
-                                    <ui:label label="Thời gian (phút)" htmlFor="timeLimitMinutes" />
-                                    <ui:input id="timeLimitMinutes" name="timeLimitMinutes" type="number"
-                                        value="${section.timeLimitMinutes}" placeholder="0" />
+                                    <ui:label label="Thời gian (phút)" htmlFor="timeLimitMinutes" required="true"/>
+                                    <ui:input id="timeLimitMinutes" name="timeLimitMinutes" type="number" value="${section.timeLimitMinutes}" />
                                 </div>
                                 <div>
-                                    <ui:label label="Điểm đạt" htmlFor="passScore" />
-                                    <ui:input id="passScore" name="passScore" type="number" value="${section.passScore}" placeholder="0" />
+                                    <ui:label label="Điểm đạt" htmlFor="passScore" required="true"/>
+                                    <ui:input id="passScore" name="passScore" type="number" value="${section.passScore}" />
                                 </div>
                                 <div>
-                                    <ui:label label="Tổng điểm" htmlFor="totalScore" />
-                                    <ui:input id="totalScore" name="totalScore" type="number"
-                                        value="${section.totalScore}" placeholder="0" />
+                                    <ui:label label="Tổng điểm" htmlFor="totalScore" required="true"/>
+                                    <ui:input id="totalScore" name="totalScore" type="number" value="${section.totalScore}" />
                                 </div>
                             </div>
 
                             <div class="mb-4 hidden" id="audioField">
-                                <ui:label label="File nghe" htmlFor="audio" required="true"/>
+                                <ui:label label="File nghe" htmlFor="audio" required="true" />
                                 <c:if test="${not empty section.audioUrl}">
                                     <div class="mb-2 p-3 bg-gray-50 rounded-lg">
                                         <p class="text-sm text-gray-600 mb-2">Audio hiện tại:</p>
@@ -174,7 +173,7 @@
                                 audioFileValid = true;
                             }
                         };
-                        
+
                         const sectionTypeValidation = (value) => {
                             if (!value.trim()) {
                                 return "Loại phần thi là bắt buộc!";
@@ -182,9 +181,30 @@
                             return "";
                         };
 
+                        const numberValidation = (value) => {
+                            if (!value.trim()) {
+                                return "Giá trị là bắt buộc!";
+                            }
+                            if (value < 0) {
+                                return "Giá trị không được âm!";
+                            }
+                            return "";
+                        };
+
                         const doValidation = () => {
                             let isValid = true;
                             isValid &= validateSelect('sectionType', sectionTypeValidation);
+                            isValid &= validateInput('timeLimitMinutes', numberValidation);
+                            isValid &= validateInput('passScore', numberValidation);
+                            isValid &= validateInput('totalScore', numberValidation);
+
+                            //Điểm đạt KHÔNG được vượt quá tổng điểm
+                            const passScore = parseInt(document.getElementById('passScore').value);
+                            const totalScore = parseInt(document.getElementById('totalScore').value);
+                            if (passScore > totalScore) {
+                                isValid = false;
+                                showError('passScore', "Điểm đạt không được vượt quá tổng điểm!");
+                            }
 
                             if (document.getElementById('sectionType-input').value === 'Choukai') {
                                 const audioInput = document.getElementById('audio');
