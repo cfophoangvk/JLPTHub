@@ -8,6 +8,7 @@
         <title>JLPTHub</title>
         <script src="${pageContext.request.contextPath}/assets/js/tailwindcss.js"></script>
         <script src="${pageContext.request.contextPath}/assets/js/quill.js"></script>
+        <link rel="icon" href="${pageContext.request.contextPath}/assets/images/favicon.ico">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/quill.snow.css"/>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style type="text/tailwindcss">

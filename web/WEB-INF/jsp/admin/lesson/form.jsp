@@ -14,7 +14,6 @@
                     <ui:card title="${not empty lesson ? 'Chỉnh sửa bài học' : 'Thêm bài học mới'}"
                         className="max-w-4xl mx-auto my-4 px-4 py-8">
 
-                        <!-- Breadcrumb -->
                         <nav class="flex mb-6" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                                 <li class="inline-flex items-center">

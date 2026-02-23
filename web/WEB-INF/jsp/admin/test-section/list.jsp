@@ -5,7 +5,6 @@
 
                 <layout:mainLayout>
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        <!-- Breadcrumb -->
                         <nav class="flex mb-4" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                                 <li class="inline-flex items-center">
@@ -72,31 +71,29 @@
                             <ui:table>
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <ui:th>Loại phần thi</ui:th>
-                                        <ui:th>Thời gian (phút)</ui:th>
-                                        <ui:th>Điểm đạt</ui:th>
-                                        <ui:th>Tổng điểm</ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable(0, 'text')">Loại phần thi <span id="sort-arrow-0"
+                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable(1, 'number')">Thời gian (phút) <span
+                                                    id="sort-arrow-1" class="text-gray-400 text-xs">▲▼</span></span>
+                                        </ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable(2, 'number')">Điểm đạt <span id="sort-arrow-2"
+                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable(3, 'number')">Tổng điểm <span id="sort-arrow-3"
+                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
                                         <ui:th>Audio</ui:th>
                                         <ui:th>Số câu hỏi</ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tableBody">
                                     <c:forEach items="${sections}" var="section">
                                         <tr>
                                             <ui:td>
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                                    <c:choose>
-                                                        <c:when test="${section.sectionType=='Moji/Goi'
-                                                    }">bg-purple-100 text-purple-800</c:when>
-                                                    <c:when test="${section.sectionType == 'Bunpou'}">bg-blue-100
-                                                        text-blue-800</c:when>
-                                                    <c:when test="${section.sectionType == 'Choukai'}">bg-green-100
-                                                        text-green-800</c:when>
-                                                    <c:otherwise>bg-gray-100 text-gray-800</c:otherwise>
-                                                    </c:choose>
-                                                    ">${section.sectionType}
-                                                </span>
+                                                <span class="font-medium text-gray-900">${section.sectionType}</span>
                                             </ui:td>
                                             <ui:td>${section.timeLimitMinutes}</ui:td>
                                             <ui:td>${section.passScore}</ui:td>
@@ -106,15 +103,19 @@
                                                     <c:when test="${not empty section.audioUrl}">
                                                         <audio controls class="h-8">
                                                             <source src="${section.audioUrl}" type="audio/mpeg">
-                                                            Trình duyệt không hỗ trợ audio.
                                                         </audio>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <span class="text-gray-400 italic">Không có audio</span>
+                                                        <span class="text-gray-400 italic text-xs">Không có audio</span>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </ui:td>
-                                            <ui:td>${questionCounts[section.id]}</ui:td>
+                                            <ui:td>
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    ${questionCounts[section.id]} câu
+                                                </span>
+                                            </ui:td>
                                             <ui:td
                                                 className="text-center flex justify-center items-center space-x-2 mx-auto">
                                                 <ui:button className="!bg-teal-500 hover:!bg-teal-700 text-white"
@@ -140,10 +141,10 @@
                                         </tr>
                                     </c:forEach>
                                     <c:if test="${empty sections}">
-                                        <tr>
+                                        <tr class="empty-row">
                                             <td colspan="7"
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                                Không có phần thi nào.
+                                                Chưa có phần thi nào.
                                             </td>
                                         </tr>
                                     </c:if>
@@ -163,8 +164,8 @@
                                 <ui:alertDialogDescription>
                                     <div class="text-center text-muted-foreground">
                                         Bạn có chắc chắn muốn xóa phần thi này?<br />
-                                        <span class="text-red-600 font-semibold">(LƯU Ý: Phần thi sẽ bị ẩn khỏi danh
-                                            sách.)</span>
+                                        <span class="text-red-600 font-semibold">(LƯU Ý: Tất cả câu hỏi trong phần thi
+                                            cũng sẽ bị xóa.)</span>
                                     </div>
                                 </ui:alertDialogDescription>
                             </ui:alertDialogHeader>
@@ -191,5 +192,41 @@
                             document.getElementById('deleteSectionId').value = id;
                             openDialog('alert-section');
                         };
+
+                        // Search
+                        const searchCols = [0]; // Loại phần thi
+                        function filterTable() {
+                            const query = document.getElementById('searchInput').value.toLowerCase();
+                            const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
+                            rows.forEach(row => {
+                                const cells = row.querySelectorAll('td');
+                                const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
+                                row.style.display = match ? '' : 'none';
+                            });
+                        }
+
+                        // Sort
+                        let sortDir = {};
+                        function sortTable(colIdx, type) {
+                            const tbody = document.getElementById('tableBody');
+                            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
+                            const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
+                            sortDir[colIdx] = dir;
+
+                            rows.sort((a, b) => {
+                                const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                if (type === 'number') {
+                                    return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
+                                }
+                                return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
+                            });
+
+                            rows.forEach(row => tbody.appendChild(row));
+
+                            document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
+                            const arrow = document.getElementById('sort-arrow-' + colIdx);
+                            if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
+                        }
                     </script>
                 </layout:mainLayout>

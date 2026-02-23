@@ -31,17 +31,22 @@
                             </div>
                         </c:if>
 
+                        <!-- Search -->
+                        <div class="mb-4">
+                            <ui:input id="searchInput" name="searchInput" placeholder="Tìm kiếm theo tên, mô tả..." searchIcon="true" onInput="filterTable()"/>
+                        </div>
+
                         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                             <ui:table>
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <ui:th>Tên</ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1" onclick="sortTable(0, 'text')">Tên <span id="sort-arrow-0" class="text-gray-400 text-xs">▲▼</span></span></ui:th>
                                         <ui:th>Mô tả</ui:th>
-                                        <ui:th>Cấp độ</ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1" onclick="sortTable(2, 'text')">Cấp độ <span id="sort-arrow-2" class="text-gray-400 text-xs">▲▼</span></span></ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tableBody">
                                     <c:forEach items="${groups}" var="group">
                                         <tr>
                                             <ui:td>${group.name}</ui:td>
@@ -78,7 +83,7 @@
                                         </tr>
                                     </c:forEach>
                                     <c:if test="${empty groups}">
-                                        <tr>
+                                        <tr class="empty-row">
                                             <td colspan="4"
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                                 Không có dữ liệu.</td>
@@ -115,5 +120,44 @@
                         const goToEditFlashcardGroup = (id) => {
                             location.href = '${pageContext.request.contextPath}/admin/flashcard-groups/edit?id=' + id;
                         };
+
+                        // Search
+                        const searchCols = [0, 1]; // Tên, Mô tả
+                        function filterTable() {
+                            const query = document.getElementById('searchInput').value.toLowerCase();
+                            const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
+                            let visible = 0;
+                            rows.forEach(row => {
+                                const cells = row.querySelectorAll('td');
+                                const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
+                                row.style.display = match ? '' : 'none';
+                                if (match) visible++;
+                            });
+                        }
+
+                        // Sort
+                        let sortDir = {};
+                        function sortTable(colIdx, type) {
+                            const tbody = document.getElementById('tableBody');
+                            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
+                            const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
+                            sortDir[colIdx] = dir;
+
+                            rows.sort((a, b) => {
+                                const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                if (type === 'number') {
+                                    return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
+                                }
+                                return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
+                            });
+
+                            rows.forEach(row => tbody.appendChild(row));
+
+                            // Update arrows
+                            document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
+                            const arrow = document.getElementById('sort-arrow-' + colIdx);
+                            if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
+                        }
                     </script>
                 </layout:mainLayout>

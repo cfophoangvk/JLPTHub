@@ -21,13 +21,15 @@
                                 </ui:button>
                             </div>
 
-                            <div class="mb-6">
+                            <div class="mb-6 flex flex-wrap items-center gap-4">
                                 <form id="levelForm" method="GET"
                                     action="${pageContext.request.contextPath}/admin/tests"
                                     class="flex items-center space-x-4">
-                                    <ui:label htmlFor="level" label="Lọc theo cấp độ:" className="text-sm font-medium text-gray-700" />
+                                    <ui:label htmlFor="level" label="Lọc theo cấp độ:"
+                                        className="text-sm font-medium text-gray-700" />
                                     <div class="w-50">
-                                        <ui:select id="level" name="level" defaultValue="${selectedLevel}" onChange="onLevelChange">
+                                        <ui:select id="level" name="level" defaultValue="${selectedLevel}"
+                                            onChange="onLevelChange">
                                             <ui:selectTrigger className="w-full"
                                                 placeholder="${not empty selectedLevel ? selectedLevel : 'Tất cả'}" />
                                             <ui:selectContent>
@@ -39,6 +41,7 @@
                                         </ui:select>
                                     </div>
                                 </form>
+                                <ui:input id="searchInput" name="searchInput" placeholder="Tìm kiếm theo tiêu đề..." searchIcon="true" onInput="filterTable()" />
                             </div>
 
                             <c:if test="${not empty param.success}">
@@ -70,14 +73,23 @@
                                     <thead class="bg-gray-50">
                                         <tr>
                                             <ui:th>ID</ui:th>
-                                            <ui:th>Tiêu đề</ui:th>
-                                            <ui:th>Cấp độ</ui:th>
+                                            <ui:th><span
+                                                    class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                    onclick="sortTable(1, 'text')">Tiêu đề <span id="sort-arrow-1"
+                                                        class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                            <ui:th><span
+                                                    class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                    onclick="sortTable(2, 'text')">Cấp độ <span id="sort-arrow-2"
+                                                        class="text-gray-400 text-xs">▲▼</span></span></ui:th>
                                             <ui:th>Số phần thi</ui:th>
-                                            <ui:th>Ngày tạo</ui:th>
+                                            <ui:th><span
+                                                    class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                    onclick="sortTable(4, 'text')">Ngày tạo <span id="sort-arrow-4"
+                                                        class="text-gray-400 text-xs">▲▼</span></span></ui:th>
                                             <ui:th className="!text-center">Hành động</ui:th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="tableBody">
                                         <c:forEach items="${tests}" var="test">
                                             <tr>
                                                 <ui:td>${test.id}</ui:td>
@@ -87,7 +99,7 @@
                                                 <ui:td>
                                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                                                     <c:choose>
-                                                        <c:when test="${test.level == 'N5'}">bg-green-100
+                                                        <c:when test=" ${test.level=='N5' }">bg-green-100
                                                         text-green-800</c:when>
                                                         <c:when test="${test.level == 'N4'}">bg-blue-100 text-blue-800
                                                         </c:when>
@@ -132,7 +144,7 @@
                                             </tr>
                                         </c:forEach>
                                         <c:if test="${empty tests}">
-                                            <tr>
+                                            <tr class="empty-row">
                                                 <td colspan="6"
                                                     class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                                     Không có bài test nào.
@@ -183,8 +195,44 @@
                                 openDialog('alert-test');
                             };
 
-                            function onLevelChange (value) {
+                            function onLevelChange(value) {
                                 document.getElementById('levelForm').submit();
                             };
+
+                            // Search
+                            const searchCols = [1]; // Tiêu đề
+                            function filterTable() {
+                                const query = document.getElementById('searchInput').value.toLowerCase();
+                                const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
+                                rows.forEach(row => {
+                                    const cells = row.querySelectorAll('td');
+                                    const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
+                                    row.style.display = match ? '' : 'none';
+                                });
+                            }
+
+                            // Sort
+                            let sortDir = {};
+                            function sortTable(colIdx, type) {
+                                const tbody = document.getElementById('tableBody');
+                                const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
+                                const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
+                                sortDir[colIdx] = dir;
+
+                                rows.sort((a, b) => {
+                                    const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                    const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                    if (type === 'number') {
+                                        return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
+                                    }
+                                    return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
+                                });
+
+                                rows.forEach(row => tbody.appendChild(row));
+
+                                document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
+                                const arrow = document.getElementById('sort-arrow-' + colIdx);
+                                if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
+                            }
                         </script>
                     </layout:mainLayout>

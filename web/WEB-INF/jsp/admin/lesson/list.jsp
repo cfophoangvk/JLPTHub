@@ -68,18 +68,27 @@
                             </div>
                         </c:if>
 
+                        <!-- Search -->
+                        <div class="mb-4">
+                            <ui:input id="searchInput" name="searchInput" placeholder="Tìm kiếm theo tiêu đề, mô tả..." searchIcon="true" onInput="filterTable()" />
+                        </div>
+
                         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                             <ui:table>
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <ui:th>Tiêu đề</ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable(0, 'text')">Tiêu đề <span id="sort-arrow-0"
+                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
                                         <ui:th>Mô tả</ui:th>
                                         <ui:th>Audio</ui:th>
-                                        <ui:th>Thứ tự</ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable(3, 'number')">Thứ tự <span id="sort-arrow-3"
+                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tableBody">
                                     <c:forEach items="${lessons}" var="lesson">
                                         <tr>
                                             <ui:td>${lesson.title}</ui:td>
@@ -137,7 +146,7 @@
                                         </tr>
                                     </c:forEach>
                                     <c:if test="${empty lessons}">
-                                        <tr>
+                                        <tr class="empty-row">
                                             <td colspan="5"
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                                 Không có bài học nào trong nhóm này.
@@ -190,5 +199,41 @@
                             document.getElementById('deleteLessonId').value = id;
                             openDialog('alert-lesson');
                         };
+
+                        // Search
+                        const searchCols = [0, 1]; // Tiêu đề, Mô tả
+                        function filterTable() {
+                            const query = document.getElementById('searchInput').value.toLowerCase();
+                            const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
+                            rows.forEach(row => {
+                                const cells = row.querySelectorAll('td');
+                                const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
+                                row.style.display = match ? '' : 'none';
+                            });
+                        }
+
+                        // Sort
+                        let sortDir = {};
+                        function sortTable(colIdx, type) {
+                            const tbody = document.getElementById('tableBody');
+                            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
+                            const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
+                            sortDir[colIdx] = dir;
+
+                            rows.sort((a, b) => {
+                                const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                if (type === 'number') {
+                                    return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
+                                }
+                                return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
+                            });
+
+                            rows.forEach(row => tbody.appendChild(row));
+
+                            document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
+                            const arrow = document.getElementById('sort-arrow-' + colIdx);
+                            if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
+                        }
                     </script>
                 </layout:mainLayout>

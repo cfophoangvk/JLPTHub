@@ -81,18 +81,26 @@
                             </div>
                         </c:if>
 
+                        <div class="mb-4">
+                            <ui:input id="searchInput" name="searchInput" placeholder="Tìm kiếm theo nội dung..." searchIcon="true" onInput="filterTable()" />
+                        </div>
+
                         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                             <ui:table>
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <ui:th>ID</ui:th>
-                                        <ui:th>Nội dung</ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable(1, 'text')">Nội dung <span id="sort-arrow-1"
+                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
                                         <ui:th>Hình ảnh</ui:th>
-                                        <ui:th>Số lựa chọn</ui:th>
+                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable(3, 'number')">Số lựa chọn <span id="sort-arrow-3"
+                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tableBody">
                                     <c:forEach items="${questions}" var="question">
                                         <tr>
                                             <ui:td>${question.id}</ui:td>
@@ -149,7 +157,7 @@
                                         </tr>
                                     </c:forEach>
                                     <c:if test="${empty questions}">
-                                        <tr>
+                                        <tr class="empty-row">
                                             <td colspan="5"
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                                 Không có câu hỏi nào.
@@ -192,8 +200,9 @@
                             <img id="previewImage" src="" alt="Preview" class="max-w-4xl max-h-screen object-contain" />
                         </div>
                     </div>
-                        
-                    <ui:dialog id="detail-dialog" className="h-[90%] w-3xl scrollbar-hide open:flex open:flex-col open:gap-2">
+
+                    <ui:dialog id="detail-dialog"
+                        className="h-[90%] w-3xl scrollbar-hide open:flex open:flex-col open:gap-2">
                         <ui:dialogHeader>
                             <ui:dialogTitle>Chi tiết câu hỏi</ui:dialogTitle>
                         </ui:dialogHeader>
@@ -211,9 +220,13 @@
                         </div>
 
                         <div id="detail-container" class="h-full overflow-y-auto hidden">
-                            <p class="mt-1 text-base text-gray-900 text-center" id="detail-questionContent">Câu hỏi sẽ xuất hiện ở đây.</p>
-                            <img id="detail-questionImage" src="https://res.cloudinary.com/dnvp064it/image/upload/v1770205295/Tests/hiapdqfliel84tdbnnyj.jpg" class="max-h-60 rounded object-contain border border-gray-200 mx-auto">
-                            <h4 class="text-sm font-medium text-gray-500 my-2">Các lựa chọn (<span id="detail-noAnswers">0</span>):</h4>
+                            <p class="mt-1 text-base text-gray-900 text-center" id="detail-questionContent">Câu hỏi sẽ
+                                xuất hiện ở đây.</p>
+                            <img id="detail-questionImage"
+                                src="https://res.cloudinary.com/dnvp064it/image/upload/v1770205295/Tests/hiapdqfliel84tdbnnyj.jpg"
+                                class="max-h-60 rounded object-contain border border-gray-200 mx-auto">
+                            <h4 class="text-sm font-medium text-gray-500 my-2">Các lựa chọn (<span
+                                    id="detail-noAnswers">0</span>):</h4>
                             <div id="detail-answerItems" class="space-y-2"></div>
                         </div>
                     </ui:dialog>
@@ -255,7 +268,7 @@
                             const answerItems = document.getElementById("detail-answerItems");
                             skeleton.classList.remove("hidden");
                             container.classList.add("hidden");
-                            
+
                             fetch('${pageContext.request.contextPath}/admin/questions/detail?id=' + id)
                                 .then(response => response.json())
                                 .then(data => {
@@ -263,21 +276,21 @@
                                         content.innerHTML = `<div class="text-red-500">Error: \${data.error}</div>`;
                                         return;
                                     }
-                                    
+
                                     answerItems.innerHTML = "";
                                     const q = data.question;
                                     const opts = data.options || [];
                                     questionContent.innerText = q.content || "Không có nội dung";
-                                    
+
                                     if (q.imageUrl) {
                                         questionImage.classList.remove("hidden");
                                         questionImage.src = q.imageUrl;
-                                    }else {
+                                    } else {
                                         questionImage.classList.add("hidden");
                                     }
-                                    
+
                                     noAnswers.innerText = opts.length;
-                                    
+
                                     opts.forEach(opt => {
                                         const answerEl = `<div class="flex items-center p-3 rounded-lg border \${opt.isCorrect ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}">
                                             <div class="flex-1 flex items-center gap-2">
@@ -298,6 +311,42 @@
                                     skeleton.classList.add("hidden");
                                     container.classList.remove("hidden");
                                 });
-                            };
+                        };
+
+                        // Search
+                        const searchCols = [1]; // Nội dung
+                        function filterTable() {
+                            const query = document.getElementById('searchInput').value.toLowerCase();
+                            const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
+                            rows.forEach(row => {
+                                const cells = row.querySelectorAll('td');
+                                const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
+                                row.style.display = match ? '' : 'none';
+                            });
+                        }
+
+                        // Sort
+                        let sortDir = {};
+                        function sortTable(colIdx, type) {
+                            const tbody = document.getElementById('tableBody');
+                            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
+                            const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
+                            sortDir[colIdx] = dir;
+
+                            rows.sort((a, b) => {
+                                const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
+                                if (type === 'number') {
+                                    return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
+                                }
+                                return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
+                            });
+
+                            rows.forEach(row => tbody.appendChild(row));
+
+                            document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
+                            const arrow = document.getElementById('sort-arrow-' + colIdx);
+                            if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
+                        }
                     </script>
                 </layout:mainLayout>

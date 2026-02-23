@@ -27,7 +27,8 @@
                             <div class="max-w-5xl mx-auto px-6">
                                 <div class="flex space-x-1" id="section-tabs">
                                     <c:forEach var="section" items="${sections}" varStatus="status">
-                                        <button type="button" id="tab-${status.index}" class="section-tab px-6 py-3 font-medium text-sm rounded-t-lg transition-colors ${status.index == 0 ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-600'}">
+                                        <button type="button" id="tab-${status.index}"
+                                            class="section-tab px-6 py-3 font-medium text-sm rounded-t-lg transition-colors ${status.index == 0 ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-600'}">
                                             <c:choose>
                                                 <c:when test="${section.sectionType == 'Moji/Goi'}">
                                                     <i class="fa-solid fa-language mr-2"></i>
@@ -145,14 +146,15 @@
                                 </c:forEach>
                             </div>
                         </form>
-                            
+
                         <ui:alertDialog id="complete-section-confirm">
                             <ui:alertDialogHeader>
                                 <ui:alertDialogTitle>Xác nhận hoàn thành</ui:alertDialogTitle>
                                 <ui:alertDialogDescription>
                                     <div class="text-center text-muted-foreground">
                                         Bạn có chắc chắn muốn hoàn thành phần thi?<br />
-                                        <span class="text-amber-600 font-semibold">Không thể quay lại phần thi này.</span>
+                                        <span class="text-amber-600 font-semibold">Không thể quay lại phần thi
+                                            này.</span>
                                     </div>
                                 </ui:alertDialogDescription>
                             </ui:alertDialogHeader>
@@ -185,27 +187,66 @@
                     </div>
 
                     <script>
-                        let startTime = Date.now();
-                        let currentSection = 0;
-                        const totalSections = ${ sections.size()};
+                        const sectionDurations = [];
+                        <c:forEach var="section" items="${sections}">
+                            sectionDurations.push(${section.timeLimitMinutes * 60});
+                        </c:forEach>
 
-                        // Timer
+                        let globalStartTime = Date.now();
+                        let sectionStartTime = Date.now();
+                        let currentSection = 0;
+                        const totalSections = ${sections.size()};
+                        let isTransitioning = false;
+
                         function updateTimer() {
-                            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                            const minutes = Math.floor(elapsed / 60);
-                            const seconds = elapsed % 60;
-                            document.getElementById('timer-display').textContent =
-                                String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-                            document.getElementById('durationInput').value = elapsed;
+                            if (isTransitioning) return;
+
+                            const now = Date.now();
+                            const totalElapsed = Math.floor((now - globalStartTime) / 1000);
+                            document.getElementById('durationInput').value = totalElapsed;
+
+                            const sectionDuration = sectionDurations[currentSection];
+                            const sectionElapsed = Math.floor((now - sectionStartTime) / 1000);
+                            const timeRemaining = sectionDuration - sectionElapsed;
+
+                            if (timeRemaining <= 0) {
+                                document.getElementById('timer-display').textContent = "00:00";
+                                handleTimeOut();
+                            } else {
+                                const minutes = Math.floor(timeRemaining / 60);
+                                const seconds = timeRemaining % 60;
+                                document.getElementById('timer-display').textContent =
+                                    String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+                            }
                         }
-                        setInterval(updateTimer, 1000);
+
+                        function handleTimeOut() {
+                            if (isTransitioning) return;
+                            isTransitioning = true;
+
+                            if (currentSection < totalSections - 1) {
+                                nextSection();
+                                isTransitioning = false;
+                            } else {
+                                submitAnswers();
+                            }
+                        }
+
+                        const timerInterval = setInterval(updateTimer, 1000);
+                        updateTimer(); //Update bộ đếm thời gian
 
                         function nextSection() {
                             //Disable nút section vừa làm
-                            document.getElementById('tab-' + currentSection).disabled = true;
-                            document.getElementById('tab-' + currentSection).classList.add('cursor-not-allowed');
+                            const prevTab = document.getElementById('tab-' + currentSection);
+                            if (prevTab) {
+                                prevTab.disabled = true;
+                                prevTab.classList.add('cursor-not-allowed');
+                            }
+
                             currentSection++;
-                            
+
+                            sectionStartTime = Date.now();
+
                             const allAudios = document.querySelectorAll('audio');
                             allAudios.forEach(audio => {
                                 audio.pause();
@@ -218,15 +259,23 @@
                                 el.classList.add('bg-gray-100', 'text-gray-600');
                             });
 
-                            document.getElementById('section-' + currentSection).classList.remove('hidden');
+                            const nextSectionEl = document.getElementById('section-' + currentSection);
+                            if (nextSectionEl) {
+                                nextSectionEl.classList.remove('hidden');
+                            }
+
                             const tab = document.getElementById('tab-' + currentSection);
-                            tab.classList.remove('bg-gray-100', 'text-gray-600');
-                            tab.classList.add('bg-indigo-500', 'text-white');
+                            if (tab) {
+                                tab.classList.remove('bg-gray-100', 'text-gray-600');
+                                tab.classList.add('bg-indigo-500', 'text-white');
+                            }
 
                             const audio = document.getElementById('audio-' + currentSection);
                             if (audio) {
                                 audio.play().catch(e => console.log('Audio autoplay blocked:', e));
                             }
+
+                            updateTimer();
 
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
@@ -243,7 +292,6 @@
                                     label.classList.add('border-gray-200');
                                 });
 
-                                // Add selected style
                                 const label = this.closest('.option-label');
                                 label.classList.remove('border-gray-200');
                                 label.classList.add('border-indigo-500', 'bg-indigo-50');
@@ -280,6 +328,7 @@
                         document.addEventListener('DOMContentLoaded', restoreAnswers);
 
                         function submitAnswers() {
+                            clearInterval(timerInterval);
                             localStorage.removeItem('test_${test.id}_answers');
                             submitForm('testForm');
                         }

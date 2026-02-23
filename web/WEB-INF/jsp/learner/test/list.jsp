@@ -95,16 +95,11 @@
                                     <h3 class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-2 line-clamp-2">
                                         ${test.title}
                                     </h3>
-                                    <p class="text-gray-600 text-sm mb-4">
-                                        <i class="fa-solid fa-clock mr-1"></i>
-                                        Thời gian giới hạn theo từng phần
-                                    </p>
                                     
-                                    <a href="${pageContext.request.contextPath}/test/take?testId=${test.id}"
-                                        class="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-lg transition-colors">
+                                    <ui:button onclick="openDialog('start-test-dialog')" className="w-full">
                                         <i class="fa-solid fa-play mr-2"></i>
-                                        Bắt đầu làm bài
-                                    </a>
+                                        <span class="text-base">Bắt đầu làm bài</span>
+                                    </ui:button>
                                 </div>
                             </div>
                         </c:forEach>
@@ -114,6 +109,23 @@
         </div>
     </div>
 
+    <ui:alertDialog id="start-test-dialog">
+        <ui:alertDialogHeader>
+            <ui:alertDialogTitle>Bắt đầu làm bài</ui:alertDialogTitle>
+            <ui:alertDialogDescription>
+                <div class="text-center">
+                    <div class="mb-3 text-muted-foreground">Bạn có muốn bắt đầu làm bài?</div>
+                    <div>(<i class="fa-solid fa-clock mr-1"></i>Thời gian giới hạn theo từng phần)</div>
+                </div>
+            </ui:alertDialogDescription>
+        </ui:alertDialogHeader>
+        <ui:alertDialogFooter>
+            <ui:alertDialogCancel>Không</ui:alertDialogCancel>
+            <ui:alertDialogAction onclick="location.href='${pageContext.request.contextPath}/test/take?testId=${test.id}'">
+                Có
+            </ui:alertDialogAction>
+        </ui:alertDialogFooter>
+    </ui:alertDialog>
     <script>
         function onLevelChange(value) {
             document.getElementById('levelForm').submit();
