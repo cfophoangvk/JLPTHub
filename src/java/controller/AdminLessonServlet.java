@@ -105,9 +105,20 @@ public class AdminLessonServlet extends HttpServlet {
 
         UUID groupId = UUID.fromString(groupIdStr);
         LessonGroup group = groupService.findById(groupId);
-        List<Lesson> lessons = lessonService.findAllByGroupId(groupId);
+        
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String sort = request.getParameter("sort");
+        boolean asc = false;
+        if (sort != null) {
+            asc = Boolean.parseBoolean(request.getParameter("asc"));
+        }
+        List<Lesson> lessons = lessonService.find(groupId, title, description, sort, asc);
 
         request.setAttribute("group", group);
+        request.setAttribute("title", title);
+        request.setAttribute("description", description);
+        request.setAttribute("sort", sort + "_" + (asc ? "desc" : "asc"));
         request.setAttribute("lessons", lessons);
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/lesson/list.jsp").forward(request, response);
     }

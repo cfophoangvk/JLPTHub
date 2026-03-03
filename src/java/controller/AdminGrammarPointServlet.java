@@ -96,9 +96,20 @@ public class AdminGrammarPointServlet extends HttpServlet {
 
         UUID lessonId = UUID.fromString(lessonIdStr);
         Lesson lesson = lessonService.findById(lessonId);
-        List<GrammarPoint> grammarPoints = grammarService.findAllByLessonId(lessonId);
+        
+        String title = request.getParameter("title");
+        String structure = request.getParameter("structure");
+        String sort = request.getParameter("sort");
+        boolean asc = false;
+        if (sort != null) {
+            asc = Boolean.parseBoolean(request.getParameter("asc"));
+        }
+        List<GrammarPoint> grammarPoints = grammarService.find(lessonId, title, structure, sort, asc);
 
         request.setAttribute("lesson", lesson);
+        request.setAttribute("title", title);
+        request.setAttribute("structure", structure);
+        request.setAttribute("sort", sort + "_" + (asc ? "desc" : "asc"));
         request.setAttribute("grammarPoints", grammarPoints);
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/grammar-point/list.jsp").forward(request, response);
     }

@@ -60,7 +60,6 @@
                         </form>
                     </ui:card>
 
-                    <!-- Confirmation Dialog -->
                     <ui:alertDialog id="alert-lesson-group-form">
                         <ui:alertDialogHeader>
                             <ui:alertDialogTitle>Xác nhận</ui:alertDialogTitle>
@@ -104,7 +103,7 @@
                         const doValidation = () => {
                             let isValid = true;
                             isValid &= validateInput('name', nameValidation);
-                            isValid &= validateInput('level', levelValidation);
+                            isValid &= validateSelect('level', levelValidation);
                             isValid &= validateInput('orderIndex', orderIndexValidation);
 
                             if (isValid) {

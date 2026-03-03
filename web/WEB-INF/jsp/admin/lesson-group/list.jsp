@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8" %>
+<%@page contentType="text/html" pageEncoding="UTF-8" import="model.TargetLevel" %>
     <%@ taglib prefix="ui" tagdir="/WEB-INF/tags/ui" %>
         <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
             <%@taglib prefix="layout" tagdir="/WEB-INF/tags/layout" %>
@@ -40,26 +40,49 @@
                                 <span class="block sm:inline">Đã xảy ra lỗi. Vui lòng thử lại.</span>
                             </div>
                         </c:if>
-
-                        <!-- Search -->
-                        <div class="mb-4">
-                            <ui:input id="searchInput" name="searchInput" placeholder="Tìm kiếm theo tên nhóm..." searchIcon="true" onInput="filterTable()" />
+                        
+                        <div class="mb-4 flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="whitespace-nowrap">Tên nhóm:</span>
+                                <ui:input id="name" name="name" placeholder="Nhập tên nhóm..." searchIcon="true" className="!w-70" value="${name}"/>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="whitespace-nowrap">Cấp độ:</span>
+                                <ui:select name="level" id="level" defaultValue="${level}">
+                                    <ui:selectTrigger className="w-70" placeholder="${not empty level ? level : 'Tất cả'}" />
+                                    <ui:selectContent>
+                                        <ui:selectItem value="">Tất cả</ui:selectItem>
+                                        <c:forEach items="${TargetLevel.values()}" var="i">
+                                            <ui:selectItem value="${i}">${i}</ui:selectItem>
+                                        </c:forEach>
+                                    </ui:selectContent>
+                                </ui:select>
+                            </div>
+                            <ui:button onclick="filter()">Tìm</ui:button>
                         </div>
 
                         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                             <ui:table>
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(0, 'text')">Tên nhóm <span id="sort-arrow-0"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(1, 'text')">Cấp độ <span id="sort-arrow-1"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                        <ui:th>
+                                            <span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable('${(empty sort || sort.split('_')[0] != 'name') ? 'name_asc' : sort}')">Tên nhóm
+                                                <span class="text-gray-400 text-xs">
+                                                    ${(empty sort || sort.split('_')[0] != 'name') ? '▲▼' : sort.split('_')[1] == 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            </span>
+                                        </ui:th>
+                                        <ui:th>
+                                            <span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable('${(empty sort || sort.split('_')[0] != 'level') ? 'level_asc' : sort}')">Cấp độ
+                                                <span class="text-gray-400 text-xs">
+                                                    ${(empty sort || sort.split('_')[0] != 'level') ? '▲▼' : sort.split('_')[1] == 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            </span>
+                                        </ui:th>
                                         <ui:th>Số bài học</ui:th>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(3, 'number')">Thứ tự <span id="sort-arrow-3"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                        <ui:th>Thứ tự</ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
                                     </tr>
                                 </thead>
@@ -68,20 +91,17 @@
                                         <tr>
                                             <ui:td>${group.name}</ui:td>
                                             <ui:td>
-                                                <span
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                                                     ${group.level}
                                                 </span>
                                             </ui:td>
                                             <ui:td>
-                                                <span
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                     ${lessonCounts[group.id]} bài
                                                 </span>
                                             </ui:td>
                                             <ui:td>${group.orderIndex}</ui:td>
-                                            <ui:td
-                                                className="text-center flex justify-center items-center space-x-2 mx-auto">
+                                            <ui:td className="text-center flex justify-center items-center space-x-2 mx-auto">
                                                 <ui:button className="!bg-sky-400 hover:!bg-sky-600"
                                                     onclick="goToViewLessons('${group.id}')">
                                                     Xem bài học...
@@ -116,13 +136,11 @@
                             </ui:table>
                         </div>
 
-                        <!-- Delete Form -->
                         <form id="deleteForm" action="${pageContext.request.contextPath}/admin/lesson-groups/delete"
                             method="POST">
                             <input type="hidden" name="id" id="deleteGroupId" value="" />
                         </form>
 
-                        <!-- Delete Confirmation Dialog -->
                         <ui:alertDialog id="alert-lesson-group">
                             <ui:alertDialogHeader>
                                 <ui:alertDialogTitle>Xác nhận xóa</ui:alertDialogTitle>
@@ -158,40 +176,23 @@
                             openDialog('alert-lesson-group');
                         };
 
-                        // Search
-                        const searchCols = [0]; // Tên nhóm
-                        function filterTable() {
-                            const query = document.getElementById('searchInput').value.toLowerCase();
-                            const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
-                            rows.forEach(row => {
-                                const cells = row.querySelectorAll('td');
-                                const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
-                                row.style.display = match ? '' : 'none';
-                            });
-                        }
+                        const sortTable = (field) => {
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.searchParams.set('sort', field.split("_")[0]);
+                            url.searchParams.set('asc', field.split("_")[1] === "asc");
+                            location.href = url.toString();
+                        };
 
-                        // Sort
-                        let sortDir = {};
-                        function sortTable(colIdx, type) {
-                            const tbody = document.getElementById('tableBody');
-                            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
-                            const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
-                            sortDir[colIdx] = dir;
-
-                            rows.sort((a, b) => {
-                                const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                if (type === 'number') {
-                                    return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
-                                }
-                                return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
-                            });
-
-                            rows.forEach(row => tbody.appendChild(row));
-
-                            document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
-                            const arrow = document.getElementById('sort-arrow-' + colIdx);
-                            if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
-                        }
+                        const filter = () => {
+                            const name = document.getElementById("name").value;
+                            const level = document.getElementById("level-input").value;
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.search = '';
+                            url.searchParams.set('name', name);
+                            url.searchParams.set('level', level);
+                            location.href = url.toString();
+                        };
                     </script>
                 </layout:mainLayout>

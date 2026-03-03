@@ -119,7 +119,6 @@
                         </form>
                     </ui:card>
 
-                    <!-- Confirmation Dialog -->
                     <ui:alertDialog id="alert-lesson-form">
                         <ui:alertDialogHeader>
                             <ui:alertDialogTitle>Xác nhận</ui:alertDialogTitle>

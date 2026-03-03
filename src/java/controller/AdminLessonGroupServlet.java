@@ -90,12 +90,22 @@ public class AdminLessonGroupServlet extends HttpServlet {
     }
 
     private void listGroups(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<LessonGroup> groups = groupService.findAll();
+        String name = request.getParameter("name");
+        String level = request.getParameter("level");
+        String sort = request.getParameter("sort");
+        boolean asc = false;
+        if (sort != null) {
+            asc = Boolean.parseBoolean(request.getParameter("asc"));
+        }
+        List<LessonGroup> groups = groupService.find(name, level, sort, asc);
         List<UUID> groupIds = groups.stream().map(group -> group.getId()).collect(Collectors.toList());
         
         Map<UUID, Integer> lessonCounts = lessonService.countLessonsByGroups(groupIds);
         
         request.setAttribute("groups", groups);
+        request.setAttribute("name", name);
+        request.setAttribute("level", level);
+        request.setAttribute("sort", sort + "_" + (asc ? "desc" : "asc"));
         request.setAttribute("lessonCounts", lessonCounts);
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/lesson-group/list.jsp").forward(request, response);
     }

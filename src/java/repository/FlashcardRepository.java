@@ -105,7 +105,7 @@ public class FlashcardRepository {
         return false;
     }
     
-    public List<Flashcard> filter(String term, String definition, String sortFieldName, boolean isAscending) {
+    public List<Flashcard> filter(UUID groupId, String term, String definition, String sortFieldName, boolean isAscending) {
         List<Flashcard> list = new ArrayList<>();
         Set<String> SORT_COLUMNS = new HashSet<>(Arrays.asList(
                 "term", "definition"
@@ -114,7 +114,7 @@ public class FlashcardRepository {
             return list;
         }
         List<String> parameters = new ArrayList<>();
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM Flashcard WHERE Status = 1 ");
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM Flashcard WHERE GroupId = ? AND Status = 1 ");
         if (term != null && !term.isEmpty()) {
             sqlBuilder.append("AND Term LIKE ? ");
             parameters.add("%" + term + "%");
@@ -127,8 +127,9 @@ public class FlashcardRepository {
             sqlBuilder.append("ORDER BY ").append(sortFieldName).append(" ").append(isAscending ? "ASC" : "DESC");
         }
         try (PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            stmt.setObject(1, groupId.toString());
             for (int i = 0; i < parameters.size(); i++) {
-                stmt.setObject(i + 1, parameters.get(i));
+                stmt.setObject(i + 2, parameters.get(i));
             }
 
             ResultSet rs = stmt.executeQuery();
@@ -136,7 +137,7 @@ public class FlashcardRepository {
                 list.add(mapResultSetToFlashcard(rs));
             }
         } catch (Exception e) {
-            ExceptionLogger.logError(FlashcardGroupRepository.class.getName(), "filter", "Error filtering flashcard: " + e.getMessage());
+            ExceptionLogger.logError(FlashcardRepository.class.getName(), "filter", "Error filtering flashcard: " + e.getMessage());
         }
         return list;
     }

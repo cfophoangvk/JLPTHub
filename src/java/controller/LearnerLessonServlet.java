@@ -112,7 +112,7 @@ public class LearnerLessonServlet extends HttpServlet {
             return;
         }
 
-        List<Lesson> lessons = lessonService.findAllByGroupId(groupId);
+        List<Lesson> lessons = lessonService.find(group.getId(), null, null, null, false);
 
         // Lấy trạng thái hoàn thành của từng bài
         Set<UUID> completedLessonIds = progressService.findCompletedLessonsByGroup(user.getId(), groupId);
@@ -141,8 +141,8 @@ public class LearnerLessonServlet extends HttpServlet {
         }
 
         LessonGroup group = groupService.findById(lesson.getGroupId());
-        List<Lesson> allLessonsInGroup = lessonService.findAllByGroupId(lesson.getGroupId());
-        List<GrammarPoint> grammarPoints = grammarPointService.findAllByLessonId(lessonId);
+        List<Lesson> allLessonsInGroup = lessonService.find(group.getId(), null, null, null, false);
+        List<GrammarPoint> grammarPoints = grammarPointService.find(lessonId, null, null, null, false);
 
         // Tìm bài tiếp theo
         Lesson nextLesson = null;

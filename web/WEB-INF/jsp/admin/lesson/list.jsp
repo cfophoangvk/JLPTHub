@@ -5,7 +5,6 @@
 
                 <layout:mainLayout>
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        <!-- Breadcrumb -->
                         <nav class="flex mb-4" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                                 <li class="inline-flex items-center">
@@ -32,8 +31,7 @@
                             <div>
                                 <h1 class="text-2xl font-bold text-gray-900">Bài học trong nhóm: ${group.name}</h1>
                                 <p class="text-sm text-gray-500 mt-1">
-                                    Cấp độ: <span
-                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">${group.level}</span>
+                                    Cấp độ: <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">${group.level}</span>
                                 </p>
                             </div>
                             <ui:button
@@ -52,8 +50,7 @@
                                 <span class="block sm:inline">
                                     <c:choose>
                                         <c:when test="${param.success == 'created'}">Tạo bài học thành công!</c:when>
-                                        <c:when test="${param.success == 'updated'}">Cập nhật bài học thành công!
-                                        </c:when>
+                                        <c:when test="${param.success == 'updated'}">Cập nhật bài học thành công!</c:when>
                                         <c:when test="${param.success == 'deleted'}">Xóa bài học thành công!</c:when>
                                         <c:otherwise>Thành công!</c:otherwise>
                                     </c:choose>
@@ -68,23 +65,40 @@
                             </div>
                         </c:if>
 
-                        <!-- Search -->
-                        <div class="mb-4">
-                            <ui:input id="searchInput" name="searchInput" placeholder="Tìm kiếm theo tiêu đề, mô tả..." searchIcon="true" onInput="filterTable()" />
+                        <div class="mb-4 flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="whitespace-nowrap">Tiêu đề:</span>
+                                <ui:input id="title" name="title" placeholder="Tiêu đề..." searchIcon="true" className="!w-70" value="${title}"/>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="whitespace-nowrap">Mô tả:</span>
+                                <ui:input id="description" name="description" placeholder="Mô tả..." searchIcon="true" className="!w-70" value="${description}"/>
+                            </div>
+                            <ui:button onclick="filter()">Tìm</ui:button>
                         </div>
 
                         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                             <ui:table>
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(0, 'text')">Tiêu đề <span id="sort-arrow-0"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
-                                        <ui:th>Mô tả</ui:th>
+                                        <ui:th>
+                                            <span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable('${(empty sort || sort.split('_')[0] != 'title') ? 'title_asc' : sort}')">Tiêu đề
+                                                <span class="text-gray-400 text-xs">
+                                                    ${(empty sort || sort.split('_')[0] != 'title') ? '▲▼' : sort.split('_')[1] == 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            </span>
+                                        </ui:th>
+                                        <ui:th>
+                                            <span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable('${(empty sort || sort.split('_')[0] != 'description') ? 'description_asc' : sort}')">Mô tả
+                                                <span class="text-gray-400 text-xs">
+                                                    ${(empty sort || sort.split('_')[0] != 'description') ? '▲▼' : sort.split('_')[1] == 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            </span>
+                                        </ui:th>
                                         <ui:th>Audio</ui:th>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(3, 'number')">Thứ tự <span id="sort-arrow-3"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                        <ui:th>Thứ tự</ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
                                     </tr>
                                 </thead>
@@ -157,14 +171,12 @@
                             </ui:table>
                         </div>
 
-                        <!-- Delete Form -->
                         <form id="deleteForm" action="${pageContext.request.contextPath}/admin/lessons/delete"
                             method="POST">
                             <input type="hidden" name="id" id="deleteLessonId" value="" />
                             <input type="hidden" name="groupId" value="${group.id}" />
                         </form>
 
-                        <!-- Delete Confirmation Dialog -->
                         <ui:alertDialog id="alert-lesson">
                             <ui:alertDialogHeader>
                                 <ui:alertDialogTitle>Xác nhận xóa</ui:alertDialogTitle>
@@ -200,40 +212,24 @@
                             openDialog('alert-lesson');
                         };
 
-                        // Search
-                        const searchCols = [0, 1]; // Tiêu đề, Mô tả
-                        function filterTable() {
-                            const query = document.getElementById('searchInput').value.toLowerCase();
-                            const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
-                            rows.forEach(row => {
-                                const cells = row.querySelectorAll('td');
-                                const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
-                                row.style.display = match ? '' : 'none';
-                            });
-                        }
+                        const sortTable = (field) => {
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.searchParams.set('sort', field.split("_")[0]);
+                            url.searchParams.set('asc', field.split("_")[1] === "asc");
+                            location.href = url.toString();
+                        };
 
-                        // Sort
-                        let sortDir = {};
-                        function sortTable(colIdx, type) {
-                            const tbody = document.getElementById('tableBody');
-                            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
-                            const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
-                            sortDir[colIdx] = dir;
-
-                            rows.sort((a, b) => {
-                                const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                if (type === 'number') {
-                                    return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
-                                }
-                                return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
-                            });
-
-                            rows.forEach(row => tbody.appendChild(row));
-
-                            document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
-                            const arrow = document.getElementById('sort-arrow-' + colIdx);
-                            if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
-                        }
+                        const filter = () => {
+                            const title = document.getElementById("title").value;
+                            const description = document.getElementById("description").value;
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.search = '';
+                            url.searchParams.set('groupId', '${group.id}');
+                            url.searchParams.set('title', title);
+                            url.searchParams.set('description', description);
+                            location.href = url.toString();
+                        };
                     </script>
                 </layout:mainLayout>

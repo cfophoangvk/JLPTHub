@@ -115,22 +115,39 @@ public class LessonRepository {
         return false;
     }
 
-    public List<Lesson> sortBy(String fieldName, boolean isAscending) {
+    public List<Lesson> filter(UUID groupId, String title, String description, String sortFieldName, boolean isAscending) {
         List<Lesson> list = new ArrayList<>();
-        Set<String> ALLOWED_COLUMNS = new HashSet<>(Arrays.asList(
-                "Title", "Description"
+        Set<String> SORT_COLUMNS = new HashSet<>(Arrays.asList(
+                "title", "description"
         ));
-        if (!ALLOWED_COLUMNS.contains(fieldName)) {
+        if (sortFieldName != null && !SORT_COLUMNS.contains(sortFieldName)) {
             return list;
         }
-        String sql = "SELECT * FROM Lesson ORDER BY " + fieldName + " " + (isAscending ? "ASC" : "DESC");
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        List<String> parameters = new ArrayList<>();
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM Lesson WHERE GroupId = ? AND Status = 1 ");
+        if (title != null && !title.isEmpty()) {
+            sqlBuilder.append("AND Title LIKE ? ");
+            parameters.add("%" + title + "%");
+        }
+        if (description != null && !description.isEmpty()) {
+            sqlBuilder.append("AND Description LIKE ? ");
+            parameters.add("%" + description + "%");
+        }
+        if (sortFieldName != null) {
+            sqlBuilder.append("ORDER BY ").append(sortFieldName).append(" ").append(isAscending ? "ASC" : "DESC");
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            stmt.setObject(1, groupId.toString());
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 2, parameters.get(i));
+            }
+
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 list.add(mapResultSetToLesson(rs));
             }
         } catch (Exception e) {
-            ExceptionLogger.logError(LessonRepository.class.getName(), "sortBy", "Error sorting lesson: " + e.getMessage());
+            ExceptionLogger.logError(LessonRepository.class.getName(), "filter", "Error filtering lesson: " + e.getMessage());
         }
         return list;
     }

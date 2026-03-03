@@ -5,7 +5,6 @@
 
                 <layout:mainLayout>
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        <!-- Breadcrumb -->
                         <nav class="flex mb-4" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                                 <li class="inline-flex items-center">
@@ -45,8 +44,7 @@
                             <div>
                                 <h1 class="text-2xl font-bold text-gray-900">Điểm ngữ pháp: ${lesson.title}</h1>
                             </div>
-                            <ui:button
-                                onclick="location.href='${pageContext.request.contextPath}/admin/grammar-points/create?lessonId=${lesson.id}'"
+                            <ui:button onclick="location.href='${pageContext.request.contextPath}/admin/grammar-points/create?lessonId=${lesson.id}'"
                                 className="space-x-2">
                                 <jsp:include page="/assets/icon/plus.jsp">
                                     <jsp:param name="size" value="6" />
@@ -78,12 +76,31 @@
                                 <span class="block sm:inline">Đã xảy ra lỗi. Vui lòng thử lại.</span>
                             </div>
                         </c:if>
+                            
+                        <div class="mb-4 flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="whitespace-nowrap">Tiêu đề:</span>
+                                <ui:input id="title" name="title" placeholder="Tiêu đề..." searchIcon="true" className="!w-70" value="${title}"/>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="whitespace-nowrap">Cấu trúc:</span>
+                                <ui:input id="structure" name="structure" placeholder="Cấu trúc..." searchIcon="true" className="!w-70" value="${structure}"/>
+                            </div>
+                            <ui:button onclick="filter()">Tìm</ui:button>
+                        </div>
 
                         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                             <ui:table>
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <ui:th>Tiêu đề</ui:th>
+                                        <ui:th>
+                                            <span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable('${(empty sort || sort.split('_')[0] != 'title') ? 'title_asc' : sort}')">Tiêu đề
+                                                <span class="text-gray-400 text-xs">
+                                                    ${(empty sort || sort.split('_')[0] != 'title') ? '▲▼' : sort.split('_')[1] == 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            </span>
+                                        </ui:th>
                                         <ui:th>Cấu trúc</ui:th>
                                         <ui:th>Giải thích</ui:th>
                                         <ui:th>Ví dụ</ui:th>
@@ -97,8 +114,7 @@
                                             <ui:td>
                                                 <c:choose>
                                                     <c:when test="${not empty gp.structure}">
-                                                        <code
-                                                            class="bg-gray-100 px-2 py-1 rounded text-sm">${gp.structure}</code>
+                                                        <code class="bg-gray-100 px-2 py-1 rounded text-sm">${gp.structure}</code>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <span class="text-gray-400 italic">Không có</span>
@@ -161,15 +177,12 @@
                                 </tbody>
                             </ui:table>
                         </div>
-
-                        <!-- Delete Form -->
-                        <form id="deleteForm" action="${pageContext.request.contextPath}/admin/grammar-points/delete"
-                            method="POST">
+                            
+                        <form id="deleteForm" action="${pageContext.request.contextPath}/admin/grammar-points/delete" method="POST">
                             <input type="hidden" name="id" id="deleteGrammarPointId" value="" />
                             <input type="hidden" name="lessonId" value="${lesson.id}" />
                         </form>
 
-                        <!-- Delete Confirmation Dialog -->
                         <ui:alertDialog id="alert-grammar-point">
                             <ui:alertDialogHeader>
                                 <ui:alertDialogTitle>Xác nhận xóa</ui:alertDialogTitle>
@@ -195,6 +208,26 @@
                         const confirmDelete = (id) => {
                             document.getElementById('deleteGrammarPointId').value = id;
                             openDialog('alert-grammar-point');
+                        };
+                        
+                        const sortTable = (field) => {
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.searchParams.set('sort', field.split("_")[0]);
+                            url.searchParams.set('asc', field.split("_")[1] === "asc");
+                            location.href = url.toString();
+                        };
+
+                        const filter = () => {
+                            const title = document.getElementById("title").value;
+                            const structure = document.getElementById("structure").value;
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.search = '';
+                            url.searchParams.set('lessonId', '${lesson.id}');
+                            url.searchParams.set('title', title);
+                            url.searchParams.set('structure', structure);
+                            location.href = url.toString();
                         };
                     </script>
                 </layout:mainLayout>

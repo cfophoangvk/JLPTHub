@@ -125,22 +125,38 @@ public class LessonGroupRepository {
         return false;
     }
 
-    public List<LessonGroup> sortBy(String fieldName, boolean isAscending) {
+    public List<LessonGroup> filter(String name, String level, String sortFieldName, boolean isAscending) {
         List<LessonGroup> list = new ArrayList<>();
-        Set<String> ALLOWED_COLUMNS = new HashSet<>(Arrays.asList(
-                "Name", "Level"
+        Set<String> SORT_COLUMNS = new HashSet<>(Arrays.asList(
+                "name", "level"
         ));
-        if (!ALLOWED_COLUMNS.contains(fieldName)) {
+        if (sortFieldName != null && !SORT_COLUMNS.contains(sortFieldName)) {
             return list;
         }
-        String sql = "SELECT * FROM LessonGroup ORDER BY " + fieldName + " " + (isAscending ? "ASC" : "DESC");
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        List<String> parameters = new ArrayList<>();
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM LessonGroup WHERE Status = 1 ");
+        if (name != null && !name.isEmpty()) {
+            sqlBuilder.append("AND Name LIKE ? ");
+            parameters.add("%" + name + "%");
+        }
+        if (level != null && !level.isEmpty()) {
+            sqlBuilder.append("AND Level LIKE ? ");
+            parameters.add("%" + level + "%");
+        }
+        if (sortFieldName != null) {
+            sqlBuilder.append("ORDER BY ").append(sortFieldName).append(" ").append(isAscending ? "ASC" : "DESC");
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 list.add(mapResultSetToLessonGroup(rs));
             }
         } catch (Exception e) {
-            ExceptionLogger.logError(LessonGroupRepository.class.getName(), "sortBy", "Error sorting lesson group: " + e.getMessage());
+            ExceptionLogger.logError(LessonGroupRepository.class.getName(), "filter", "Error filtering lesson group: " + e.getMessage());
         }
         return list;
     }

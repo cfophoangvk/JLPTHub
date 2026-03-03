@@ -145,7 +145,7 @@ public class FlashcardGroupRepository {
     public List<FlashcardGroup> filter(String name, String level, String sortFieldName, boolean isAscending) {
         List<FlashcardGroup> list = new ArrayList<>();
         Set<String> SORT_COLUMNS = new HashSet<>(Arrays.asList(
-                "name", "description", "level"
+                "name", "level"
         ));
         if (sortFieldName != null && !SORT_COLUMNS.contains(sortFieldName)) {
             return list;

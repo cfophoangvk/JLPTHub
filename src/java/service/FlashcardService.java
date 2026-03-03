@@ -11,7 +11,7 @@ public class FlashcardService {
     
     public List<Flashcard> find(UUID groupId, String term, String definition, String sortFieldName, boolean isAscending) {
         if ((term != null && !term.isEmpty()) || (definition != null && !definition.isEmpty()) || sortFieldName != null) {
-            return flashcardRepository.filter(term, definition, sortFieldName, isAscending);
+            return flashcardRepository.filter(groupId, term, definition, sortFieldName, isAscending);
         }
         return flashcardRepository.findAllByGroupId(groupId);
     }

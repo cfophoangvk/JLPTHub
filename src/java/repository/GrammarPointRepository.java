@@ -99,22 +99,39 @@ public class GrammarPointRepository {
         return false;
     }
 
-    public List<GrammarPoint> sortBy(String fieldName, boolean isAscending) {
+    public List<GrammarPoint> filter(UUID lessonId, String title, String structure, String sortFieldName, boolean isAscending) {
         List<GrammarPoint> list = new ArrayList<>();
-        Set<String> ALLOWED_COLUMNS = new HashSet<>(Arrays.asList(
-                "Title", "Structure", "Explanation", "Example"
+        Set<String> SORT_COLUMNS = new HashSet<>(Arrays.asList(
+                "title", "structure"
         ));
-        if (!ALLOWED_COLUMNS.contains(fieldName)) {
+        if (sortFieldName != null && !SORT_COLUMNS.contains(sortFieldName)) {
             return list;
         }
-        String sql = "SELECT * FROM GrammarPoint ORDER BY " + fieldName + " " + (isAscending ? "ASC" : "DESC");
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        List<String> parameters = new ArrayList<>();
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM GrammarPoint WHERE LessonId = ? AND Status = 1 ");
+        if (title != null && !title.isEmpty()) {
+            sqlBuilder.append("AND Title LIKE ? ");
+            parameters.add("%" + title + "%");
+        }
+        if (structure != null && !structure.isEmpty()) {
+            sqlBuilder.append("AND Structure LIKE ? ");
+            parameters.add("%" + structure + "%");
+        }
+        if (sortFieldName != null) {
+            sqlBuilder.append("ORDER BY ").append(sortFieldName).append(" ").append(isAscending ? "ASC" : "DESC");
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            stmt.setObject(1, lessonId.toString());
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 2, parameters.get(i));
+            }
+
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 list.add(mapResultSetToGrammarPoint(rs));
             }
         } catch (Exception e) {
-            ExceptionLogger.logError(GrammarPointRepository.class.getName(), "sortBy", "Error sorting grammar point: " + e.getMessage());
+            ExceptionLogger.logError(GrammarPointRepository.class.getName(), "filter", "Error filtering grammar point: " + e.getMessage());
         }
         return list;
     }

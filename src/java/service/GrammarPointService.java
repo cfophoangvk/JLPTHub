@@ -9,7 +9,10 @@ public class GrammarPointService {
 
     private final GrammarPointRepository grammarRepository = new GrammarPointRepository();
 
-    public List<GrammarPoint> findAllByLessonId(UUID lessonId) {
+    public List<GrammarPoint> find(UUID lessonId, String title, String structure, String sortFieldName, boolean isAscending) {
+        if ((title != null && !title.isEmpty()) || (structure != null && !structure.isEmpty()) || sortFieldName != null) {
+            return grammarRepository.filter(lessonId, title, structure, sortFieldName, isAscending);
+        }
         return grammarRepository.findAllByLessonId(lessonId);
     }
 
@@ -27,9 +30,5 @@ public class GrammarPointService {
 
     public boolean delete(UUID id) {
         return grammarRepository.delete(id);
-    }
-
-    public List<GrammarPoint> sortBy(String fieldName, boolean isAscending) {
-        return grammarRepository.sortBy(fieldName, isAscending);
     }
 }

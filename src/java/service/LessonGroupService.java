@@ -11,8 +11,11 @@ import repository.LessonGroupRepository;
 public class LessonGroupService {
 
     private final LessonGroupRepository groupRepository = new LessonGroupRepository();
-
-    public List<LessonGroup> findAll() {
+    
+    public List<LessonGroup> find(String name, String level, String sortFieldName, boolean isAscending) {
+        if ((name != null && !name.isEmpty()) || (level != null && !level.isEmpty()) || sortFieldName != null) {
+            return groupRepository.filter(name, level, sortFieldName, isAscending);
+        }
         return groupRepository.findAll();
     }
 
@@ -38,9 +41,5 @@ public class LessonGroupService {
 
     public boolean delete(UUID id) {
         return groupRepository.delete(id);
-    }
-    
-    public List<LessonGroup> sortBy(String fieldName, boolean isAscending) {
-        return groupRepository.sortBy(fieldName, isAscending);
     }
 }
