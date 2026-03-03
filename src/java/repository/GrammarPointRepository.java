@@ -6,7 +6,10 @@ import model.GrammarPoint;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class GrammarPointRepository {
@@ -94,6 +97,26 @@ public class GrammarPointRepository {
             ExceptionLogger.logError(GrammarPointRepository.class.getName(), "deleteAllByLessonId", "Error deleting all grammar points by lesson ID: " + e.getMessage());
         }
         return false;
+    }
+
+    public List<GrammarPoint> sortBy(String fieldName, boolean isAscending) {
+        List<GrammarPoint> list = new ArrayList<>();
+        Set<String> ALLOWED_COLUMNS = new HashSet<>(Arrays.asList(
+                "Title", "Structure", "Explanation", "Example"
+        ));
+        if (!ALLOWED_COLUMNS.contains(fieldName)) {
+            return list;
+        }
+        String sql = "SELECT * FROM GrammarPoint ORDER BY " + fieldName + " " + (isAscending ? "ASC" : "DESC");
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToGrammarPoint(rs));
+            }
+        } catch (Exception e) {
+            ExceptionLogger.logError(GrammarPointRepository.class.getName(), "sortBy", "Error sorting grammar point: " + e.getMessage());
+        }
+        return list;
     }
 
     private GrammarPoint mapResultSetToGrammarPoint(ResultSet rs) throws SQLException {

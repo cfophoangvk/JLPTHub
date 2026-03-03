@@ -39,4 +39,8 @@ public class LessonGroupService {
     public boolean delete(UUID id) {
         return groupRepository.delete(id);
     }
+    
+    public List<LessonGroup> sortBy(String fieldName, boolean isAscending) {
+        return groupRepository.sortBy(fieldName, isAscending);
+    }
 }

@@ -26,7 +26,7 @@ public class LearnerFlashcardServlet extends HttpServlet {
 
     private final FlashcardService flashcardService = new FlashcardService();
     private final FlashcardGroupService groupService = new FlashcardGroupService();
-    private final UserFlashcardProgressService progressService = new UserFlashcardProgressService();
+    private final LearnerFlashcardProgressService progressService = new LearnerFlashcardProgressService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -87,7 +87,7 @@ public class LearnerFlashcardServlet extends HttpServlet {
         // Tính số thẻ trong mỗi bộ thẻ
         Map<UUID, Integer> cardCounts = new HashMap<>();
         for (FlashcardGroup group : groups) {
-            List<Flashcard> cards = flashcardService.findAllByGroupId(group.getId());
+            List<Flashcard> cards = flashcardService.find(group.getId(), null, null, null, false);
             cardCounts.put(group.getId(), cards.size());
         }
 
@@ -112,7 +112,7 @@ public class LearnerFlashcardServlet extends HttpServlet {
             return;
         }
 
-        List<Flashcard> flashcards = flashcardService.findAllByGroupId(groupId);
+        List<Flashcard> flashcards = flashcardService.find(group.getId(), null, null, null, false);
 
         List<UserFlashcardProgress> progressList = progressService.findByUserAndGroup(user.getId(), groupId);
 
@@ -197,11 +197,11 @@ public class LearnerFlashcardServlet extends HttpServlet {
             Set<UUID> favoriteIds = favorites.stream()
                     .map(UserFlashcardProgress::getFlashcardId)
                     .collect(Collectors.toSet());
-            flashcards = flashcardService.findAllByGroupId(groupId).stream()
+            flashcards = flashcardService.find(group.getId(), null, null, null, false).stream()
                     .filter(f -> favoriteIds.contains(f.getId()))
                     .collect(Collectors.toList());
         } else {
-            flashcards = flashcardService.findAllByGroupId(groupId);
+            flashcards = flashcardService.find(group.getId(), null, null, null, false);
         }
 
         Collections.shuffle(flashcards);

@@ -6,7 +6,10 @@ import model.Question;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class QuestionRepository {
 
@@ -77,7 +80,7 @@ public class QuestionRepository {
     public boolean delete(int id) {
         // First delete all options for this question
         optionRepository.deleteAllByQuestionId(id);
-        
+
         // Then delete the question
         String sql = "DELETE FROM Question WHERE ID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -95,7 +98,7 @@ public class QuestionRepository {
         for (Question question : questions) {
             optionRepository.deleteAllByQuestionId(question.getId());
         }
-        
+
         // Then delete all questions
         String sql = "DELETE FROM Question WHERE SectionId = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -119,6 +122,26 @@ public class QuestionRepository {
             ExceptionLogger.logError(QuestionRepository.class.getName(), "countOptionsByQuestionId", "Error counting options: " + e.getMessage());
         }
         return 0;
+    }
+
+    public List<Question> sortBy(String fieldName, boolean isAscending) {
+        List<Question> list = new ArrayList<>();
+        Set<String> ALLOWED_COLUMNS = new HashSet<>(Arrays.asList(
+                "Content"
+        ));
+        if (!ALLOWED_COLUMNS.contains(fieldName)) {
+            return list;
+        }
+        String sql = "SELECT * FROM Question ORDER BY " + fieldName + " " + (isAscending ? "ASC" : "DESC");
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToQuestion(rs));
+            }
+        } catch (Exception e) {
+            ExceptionLogger.logError(QuestionRepository.class.getName(), "sortBy", "Error sorting question: " + e.getMessage());
+        }
+        return list;
     }
 
     private Question mapResultSetToQuestion(ResultSet rs) throws SQLException {

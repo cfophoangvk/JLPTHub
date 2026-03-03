@@ -9,10 +9,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.*;
-import service.LearnerTestService;
+import service.TestService;
 
 import java.io.IOException;
 import java.util.*;
+import service.QuestionOptionService;
+import service.QuestionService;
 
 @WebServlet(name = "LearnerTestServlet", urlPatterns = {
     "/test",
@@ -22,7 +24,9 @@ import java.util.*;
 })
 public class LearnerTestServlet extends HttpServlet {
 
-    private final LearnerTestService learnerTestService = new LearnerTestService();
+    private final TestService testService = new TestService();
+    private final QuestionService questionService = new QuestionService();
+    private final QuestionOptionService questionOptionService = new QuestionOptionService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -79,34 +83,31 @@ public class LearnerTestServlet extends HttpServlet {
     private void listTests(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = (User) request.getAttribute("currentUser");
         TargetLevel userLevel = user.getTargetLevel();
-        
+
         String levelStr = request.getParameter("level");
         List<Test> tests;
-        
+
         if (levelStr != null && !levelStr.isEmpty()) {
             try {
                 TargetLevel selectedLevel = TargetLevel.valueOf(levelStr);
-                // Only allow levels up to user's level
                 if (selectedLevel.ordinal() <= userLevel.ordinal()) {
-                    tests = learnerTestService.findTestsByLevel(selectedLevel);
+                    tests = testService.findAllByLevel(selectedLevel);
                     request.setAttribute("selectedLevel", levelStr);
                 } else {
-                    tests = learnerTestService.findTestsForUser(userLevel);
+                    tests = testService.findTestsForUser(userLevel);
                 }
             } catch (IllegalArgumentException e) {
-                tests = learnerTestService.findTestsForUser(userLevel);
+                tests = testService.findTestsForUser(userLevel);
             }
         } else {
-            tests = learnerTestService.findTestsForUser(userLevel);
+            tests = testService.findTestsForUser(userLevel);
         }
-        
-        // Get section counts for each test
+
         Map<Integer, Integer> sectionCounts = new HashMap<>();
         for (Test test : tests) {
-            sectionCounts.put(test.getId(), learnerTestService.countSectionsByTestId(test.getId()));
+            sectionCounts.put(test.getId(), testService.countSectionsByTestId(test.getId()));
         }
-        
-        // Get available levels (N5 up to user's level)
+
         List<TargetLevel> availableLevels = new ArrayList<>();
         for (TargetLevel level : TargetLevel.values()) {
             availableLevels.add(level);
@@ -114,7 +115,7 @@ public class LearnerTestServlet extends HttpServlet {
                 break;
             }
         }
-        
+
         request.setAttribute("tests", tests);
         request.setAttribute("sectionCounts", sectionCounts);
         request.setAttribute("levels", availableLevels);
@@ -128,46 +129,45 @@ public class LearnerTestServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/test");
             return;
         }
-        
+
         try {
             int testId = Integer.parseInt(testIdStr);
-            Test test = learnerTestService.findTestById(testId);
-            
+            Test test = testService.findById(testId);
+
             if (test == null) {
                 response.sendRedirect(request.getContextPath() + "/test");
                 return;
             }
-            
-            // Check if user can take this test (level restriction)
+
             User user = (User) request.getAttribute("currentUser");
             if (test.getLevel().ordinal() > user.getTargetLevel().ordinal()) {
                 response.sendRedirect(request.getContextPath() + "/test?error=level_restricted");
                 return;
             }
-            
-            List<TestSection> sections = learnerTestService.findSectionsByTestId(testId);
-            
+
+            List<TestSection> sections = testService.findSectionsByTestId(testId);
+
             // Build questions map for each section
             Map<Integer, List<Question>> sectionQuestions = new LinkedHashMap<>();
             Map<Integer, Map<Integer, List<QuestionOption>>> questionOptions = new HashMap<>();
-            
+
             for (TestSection section : sections) {
-                List<Question> questions = learnerTestService.findQuestionsBySectionId(section.getId());
+                List<Question> questions = questionService.findAllBySectionId(section.getId());
                 sectionQuestions.put(section.getId(), questions);
-                
+
                 Map<Integer, List<QuestionOption>> optionsMap = new HashMap<>();
                 for (Question question : questions) {
-                    optionsMap.put(question.getId(), learnerTestService.findOptionsByQuestionId(question.getId()));
+                    optionsMap.put(question.getId(), questionOptionService.findAllByQuestionId(question.getId()));
                 }
                 questionOptions.put(section.getId(), optionsMap);
             }
-            
+
             request.setAttribute("test", test);
             request.setAttribute("sections", sections);
             request.setAttribute("sectionQuestions", sectionQuestions);
             request.setAttribute("questionOptions", questionOptions);
             request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/learner/test/take.jsp").forward(request, response);
-            
+
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/test");
         }
@@ -175,22 +175,22 @@ public class LearnerTestServlet extends HttpServlet {
 
     private void submitTest(HttpServletRequest request, HttpServletResponse response) throws IOException {
         User user = (User) request.getAttribute("currentUser");
-        
+
         String testIdStr = request.getParameter("testId");
         String durationStr = request.getParameter("duration");
-        
+
         if (testIdStr == null) {
             response.sendRedirect(request.getContextPath() + "/test");
             return;
         }
-        
+
         try {
             int testId = Integer.parseInt(testIdStr);
             Integer durationSeconds = null;
             if (durationStr != null && !durationStr.isEmpty()) {
                 durationSeconds = Integer.parseInt(durationStr);
             }
-            
+
             // Collect answers from form
             Map<Integer, Integer> answers = new HashMap<>();
             Enumeration<String> paramNames = request.getParameterNames();
@@ -209,15 +209,15 @@ public class LearnerTestServlet extends HttpServlet {
                     }
                 }
             }
-            
-            UserTestResult result = learnerTestService.submitTest(user.getId(), testId, answers, durationSeconds);
-            
+
+            UserTestResult result = testService.submitTest(user.getId(), testId, answers, durationSeconds);
+
             if (result != null) {
                 response.sendRedirect(request.getContextPath() + "/test/result?resultId=" + result.getId());
             } else {
                 response.sendRedirect(request.getContextPath() + "/test?error=submit_failed");
             }
-            
+
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/test");
         }
@@ -229,37 +229,35 @@ public class LearnerTestServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/test");
             return;
         }
-        
+
         try {
             int resultId = Integer.parseInt(resultIdStr);
-            UserTestResult result = learnerTestService.findResultById(resultId);
-            
+            UserTestResult result = testService.findResultById(resultId);
+
             if (result == null) {
                 response.sendRedirect(request.getContextPath() + "/test");
                 return;
             }
-            
-            // Verify user owns this result
+
             User user = (User) request.getAttribute("currentUser");
             if (!result.getUserId().equals(user.getId())) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
                 return;
             }
-            
-            Test test = learnerTestService.findTestById(result.getTestId());
-            List<UserTestSectionResult> sectionResults = learnerTestService.findSectionResultsByResultId(resultId);
-            List<TestSection> sections = learnerTestService.findSectionsByTestId(result.getTestId());
-            
-            // Calculate total max score
+
+            Test test = testService.findById(result.getTestId());
+            List<UserTestSectionResult> sectionResults = testService.findSectionResultsByResultId(resultId);
+            List<TestSection> sections = testService.findSectionsByTestId(result.getTestId());
+
             int totalMaxScore = sections.stream().mapToInt(TestSection::getTotalScore).sum();
-            
+
             request.setAttribute("result", result);
             request.setAttribute("test", test);
             request.setAttribute("sectionResults", sectionResults);
             request.setAttribute("sections", sections);
             request.setAttribute("totalMaxScore", totalMaxScore);
             request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/learner/test/result.jsp").forward(request, response);
-            
+
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/test");
         }

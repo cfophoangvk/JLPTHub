@@ -7,7 +7,10 @@ import model.TargetLevel;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class FlashcardGroupRepository {
@@ -137,6 +140,42 @@ public class FlashcardGroupRepository {
             ExceptionLogger.logError(FlashcardGroupRepository.class.getName(), "delete", "Error deleting flashcard group: " + e.getMessage());
         }
         return false;
+    }
+
+    public List<FlashcardGroup> filter(String name, String level, String sortFieldName, boolean isAscending) {
+        List<FlashcardGroup> list = new ArrayList<>();
+        Set<String> SORT_COLUMNS = new HashSet<>(Arrays.asList(
+                "name", "description", "level"
+        ));
+        if (sortFieldName != null && !SORT_COLUMNS.contains(sortFieldName)) {
+            return list;
+        }
+        List<String> parameters = new ArrayList<>();
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM FlashcardGroup WHERE Status = 1 ");
+        if (name != null && !name.isEmpty()) {
+            sqlBuilder.append("AND Name LIKE ? ");
+            parameters.add("%" + name + "%");
+        }
+        if (level != null && !level.isEmpty()) {
+            sqlBuilder.append("AND Level LIKE ? ");
+            parameters.add("%" + level + "%");
+        }
+        if (sortFieldName != null) {
+            sqlBuilder.append("ORDER BY ").append(sortFieldName).append(" ").append(isAscending ? "ASC" : "DESC");
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToFlashcardGroup(rs));
+            }
+        } catch (Exception e) {
+            ExceptionLogger.logError(FlashcardGroupRepository.class.getName(), "filter", "Error filtering flashcard group: " + e.getMessage());
+        }
+        return list;
     }
 
     private FlashcardGroup mapResultSetToFlashcardGroup(ResultSet rs) throws SQLException {

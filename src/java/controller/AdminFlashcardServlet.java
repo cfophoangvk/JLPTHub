@@ -91,9 +91,20 @@ public class AdminFlashcardServlet extends HttpServlet {
 
         UUID groupId = UUID.fromString(groupIdStr);
         FlashcardGroup group = groupService.findById(groupId);
-        List<Flashcard> flashcards = flashcardService.findAllByGroupId(groupId);
+        
+        String term = request.getParameter("term");
+        String definition = request.getParameter("definition");
+        String sort = request.getParameter("sort");
+        boolean asc = false;
+        if (sort != null) {
+            asc = Boolean.parseBoolean(request.getParameter("asc"));
+        }
+        List<Flashcard> flashcards = flashcardService.find(groupId, term, definition, sort, asc);
 
         request.setAttribute("group", group);
+        request.setAttribute("term", term);
+        request.setAttribute("definition", definition);
+        request.setAttribute("sort", sort + "_" + (asc ? "desc" : "asc"));
         request.setAttribute("flashcards", flashcards);
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/flashcard/list.jsp").forward(request, response);
     }

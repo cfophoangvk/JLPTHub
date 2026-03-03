@@ -11,8 +11,8 @@ public class QuestionOptionService {
     private final QuestionOptionRepository optionRepository = new QuestionOptionRepository();
     private final CloudinaryService cloudinaryService = new CloudinaryService();
 
-    public List<QuestionOption> findAllByQuestionId(int id) {
-        return optionRepository.findAllByQuestionId(id);
+    public List<QuestionOption> findAllByQuestionId(int questionId) {
+        return optionRepository.findAllByQuestionId(questionId);
     }
 
     public QuestionOption findById(int id) {

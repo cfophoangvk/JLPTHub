@@ -7,7 +7,10 @@ import model.TargetLevel;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class LessonGroupRepository {
@@ -120,6 +123,26 @@ public class LessonGroupRepository {
             ExceptionLogger.logError(LessonGroupRepository.class.getName(), "delete", "Error deleting lesson group: " + e.getMessage());
         }
         return false;
+    }
+
+    public List<LessonGroup> sortBy(String fieldName, boolean isAscending) {
+        List<LessonGroup> list = new ArrayList<>();
+        Set<String> ALLOWED_COLUMNS = new HashSet<>(Arrays.asList(
+                "Name", "Level"
+        ));
+        if (!ALLOWED_COLUMNS.contains(fieldName)) {
+            return list;
+        }
+        String sql = "SELECT * FROM LessonGroup ORDER BY " + fieldName + " " + (isAscending ? "ASC" : "DESC");
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToLessonGroup(rs));
+            }
+        } catch (Exception e) {
+            ExceptionLogger.logError(LessonGroupRepository.class.getName(), "sortBy", "Error sorting lesson group: " + e.getMessage());
+        }
+        return list;
     }
 
     private LessonGroup mapResultSetToLessonGroup(ResultSet rs) throws SQLException {

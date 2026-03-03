@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class UserLessonProgressRepository {
+public class LearnerLessonProgressRepository {
 
     private final Connection conn = DBConnect.getConnection();
 
@@ -23,7 +23,7 @@ public class UserLessonProgressRepository {
                 return mapResultSetToProgress(rs);
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserLessonProgressRepository.class.getName(), "findByUserAndLesson",
+            ExceptionLogger.logError(LearnerLessonProgressRepository.class.getName(), "findByUserAndLesson",
                     "Error finding progress by user and lesson: " + e.getMessage());
         }
         return null;
@@ -44,7 +44,7 @@ public class UserLessonProgressRepository {
                 list.add(mapResultSetToProgress(rs));
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserLessonProgressRepository.class.getName(), "findByUserAndGroup",
+            ExceptionLogger.logError(LearnerLessonProgressRepository.class.getName(), "findByUserAndGroup",
                     "Error finding progress by user and group: " + e.getMessage());
         }
         return list;
@@ -64,7 +64,7 @@ public class UserLessonProgressRepository {
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserLessonProgressRepository.class.getName(), "countCompletedByGroup",
+            ExceptionLogger.logError(LearnerLessonProgressRepository.class.getName(), "countCompletedByGroup",
                     "Error counting completed lessons by group: " + e.getMessage());
         }
         return 0;
@@ -81,7 +81,7 @@ public class UserLessonProgressRepository {
                 stmt.setString(2, lessonId.toString());
                 return stmt.executeUpdate() > 0;
             } catch (SQLException e) {
-                ExceptionLogger.logError(UserLessonProgressRepository.class.getName(), "markCompleted",
+                ExceptionLogger.logError(LearnerLessonProgressRepository.class.getName(), "markCompleted",
                         "Error inserting completed progress: " + e.getMessage());
             }
         } else if (!existing.isCompleted()) {
@@ -92,7 +92,7 @@ public class UserLessonProgressRepository {
                 stmt.setString(2, lessonId.toString());
                 return stmt.executeUpdate() > 0;
             } catch (SQLException e) {
-                ExceptionLogger.logError(UserLessonProgressRepository.class.getName(), "markCompleted",
+                ExceptionLogger.logError(LearnerLessonProgressRepository.class.getName(), "markCompleted",
                         "Error updating completed progress: " + e.getMessage());
             }
         } else {

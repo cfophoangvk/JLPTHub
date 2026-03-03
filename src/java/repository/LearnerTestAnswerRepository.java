@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserTestAnswerRepository {
+public class LearnerTestAnswerRepository {
 
     private final Connection conn = DBConnect.getConnection();
 
@@ -32,7 +32,7 @@ public class UserTestAnswerRepository {
                 return true;
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestAnswerRepository.class.getName(), "save", "Error saving answer: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestAnswerRepository.class.getName(), "save", "Error saving answer: " + e.getMessage());
         }
         return false;
     }
@@ -54,7 +54,7 @@ public class UserTestAnswerRepository {
             int[] affectedRows = stmt.executeBatch();
             return affectedRows.length > 0;
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestAnswerRepository.class.getName(), "saveBatch", "Error saving batch of answers: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestAnswerRepository.class.getName(), "saveBatch", "Error saving batch of answers: " + e.getMessage());
         }
         return false;
     }
@@ -69,7 +69,7 @@ public class UserTestAnswerRepository {
                 list.add(mapResultSetToUserTestAnswer(rs));
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestAnswerRepository.class.getName(), "findAllByResultId", "Error finding answers: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestAnswerRepository.class.getName(), "findAllByResultId", "Error finding answers: " + e.getMessage());
         }
         return list;
     }

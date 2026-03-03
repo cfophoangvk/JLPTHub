@@ -9,7 +9,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class FlashcardRepository {
@@ -100,6 +103,42 @@ public class FlashcardRepository {
             ExceptionLogger.logError(FlashcardRepository.class.getName(), "deleteAllByGroupId", "Error deleting all flashcards by group ID: " + e.getMessage());
         }
         return false;
+    }
+    
+    public List<Flashcard> filter(String term, String definition, String sortFieldName, boolean isAscending) {
+        List<Flashcard> list = new ArrayList<>();
+        Set<String> SORT_COLUMNS = new HashSet<>(Arrays.asList(
+                "term", "definition"
+        ));
+        if (sortFieldName != null && !SORT_COLUMNS.contains(sortFieldName)) {
+            return list;
+        }
+        List<String> parameters = new ArrayList<>();
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM Flashcard WHERE Status = 1 ");
+        if (term != null && !term.isEmpty()) {
+            sqlBuilder.append("AND Term LIKE ? ");
+            parameters.add("%" + term + "%");
+        }
+        if (definition != null && !definition.isEmpty()) {
+            sqlBuilder.append("AND Definition LIKE ? ");
+            parameters.add("%" + definition + "%");
+        }
+        if (sortFieldName != null) {
+            sqlBuilder.append("ORDER BY ").append(sortFieldName).append(" ").append(isAscending ? "ASC" : "DESC");
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToFlashcard(rs));
+            }
+        } catch (Exception e) {
+            ExceptionLogger.logError(FlashcardGroupRepository.class.getName(), "filter", "Error filtering flashcard: " + e.getMessage());
+        }
+        return list;
     }
 
     private Flashcard mapResultSetToFlashcard(ResultSet rs) throws SQLException {

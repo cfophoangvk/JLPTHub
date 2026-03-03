@@ -7,11 +7,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import model.UserLessonProgress;
-import repository.UserLessonProgressRepository;
+import repository.LearnerLessonProgressRepository;
 
-public class UserLessonProgressService {
+public class LearnerLessonProgressService {
 
-    private final UserLessonProgressRepository progressRepository = new UserLessonProgressRepository();
+    private final LearnerLessonProgressRepository progressRepository = new LearnerLessonProgressRepository();
 
     public Set<UUID> findCompletedLessonsByGroup(UUID userId, UUID groupId) {
         List<UserLessonProgress> userProgress = progressRepository.findByUserAndGroup(userId, groupId);

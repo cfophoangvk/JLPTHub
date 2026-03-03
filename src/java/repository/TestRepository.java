@@ -7,7 +7,10 @@ import model.Test;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TestRepository {
 
@@ -113,6 +116,26 @@ public class TestRepository {
             ExceptionLogger.logError(TestRepository.class.getName(), "countSectionsByTestId", "Error counting sections: " + e.getMessage());
         }
         return 0;
+    }
+
+    public List<Test> sortBy(String fieldName, boolean isAscending) {
+        List<Test> list = new ArrayList<>();
+        Set<String> ALLOWED_COLUMNS = new HashSet<>(Arrays.asList(
+                "Title", "Level"
+        ));
+        if (!ALLOWED_COLUMNS.contains(fieldName)) {
+            return list;
+        }
+        String sql = "SELECT * FROM Test ORDER BY " + fieldName + " " + (isAscending ? "ASC" : "DESC");
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToTest(rs));
+            }
+        } catch (Exception e) {
+            ExceptionLogger.logError(TestRepository.class.getName(), "sortBy", "Error sorting test: " + e.getMessage());
+        }
+        return list;
     }
 
     private Test mapResultSetToTest(ResultSet rs) throws SQLException {

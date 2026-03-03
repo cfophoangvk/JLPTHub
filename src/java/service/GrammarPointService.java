@@ -20,12 +20,16 @@ public class GrammarPointService {
     public boolean save(GrammarPoint grammar) {
         return grammarRepository.save(grammar);
     }
-    
+
     public boolean update(GrammarPoint grammar) {
         return grammarRepository.update(grammar);
     }
-    
+
     public boolean delete(UUID id) {
         return grammarRepository.delete(id);
+    }
+
+    public List<GrammarPoint> sortBy(String fieldName, boolean isAscending) {
+        return grammarRepository.sortBy(fieldName, isAscending);
     }
 }

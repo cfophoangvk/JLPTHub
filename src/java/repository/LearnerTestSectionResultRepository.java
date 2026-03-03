@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserTestSectionResultRepository {
+public class LearnerTestSectionResultRepository {
 
     private final Connection conn = DBConnect.getConnection();
 
@@ -30,7 +30,7 @@ public class UserTestSectionResultRepository {
                 return true;
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestSectionResultRepository.class.getName(), "save", "Error saving section result: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestSectionResultRepository.class.getName(), "save", "Error saving section result: " + e.getMessage());
         }
         return false;
     }
@@ -50,7 +50,7 @@ public class UserTestSectionResultRepository {
             int[] affectedRows = stmt.executeBatch();
             return affectedRows.length > 0;
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestSectionResultRepository.class.getName(), "saveBatch", "Error saving batch of section results: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestSectionResultRepository.class.getName(), "saveBatch", "Error saving batch of section results: " + e.getMessage());
         }
         return false;
     }
@@ -67,7 +67,7 @@ public class UserTestSectionResultRepository {
                 list.add(mapResultSetToUserTestSectionResult(rs));
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestSectionResultRepository.class.getName(), "findAllByResultId", "Error finding section results: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestSectionResultRepository.class.getName(), "findAllByResultId", "Error finding section results: " + e.getMessage());
         }
         return list;
     }

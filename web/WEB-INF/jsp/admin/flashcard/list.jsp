@@ -16,8 +16,7 @@
                         </div>
                         <div class="flex justify-between items-center mb-6">
                             <div>
-                                <h1 class="text-2xl font-bold text-gray-900">Quản lý thẻ trong bộ thẻ: ${group.name}
-                                </h1>
+                                <h1 class="text-2xl font-bold text-gray-900">Quản lý thẻ trong bộ thẻ: ${group.name}</h1>
                                 <div class="text-gray-600 flex space-x-2">
                                     <span>Cấp độ:</span>
                                     <ui:badge variant="secondary">${group.level}</ui:badge>
@@ -48,22 +47,38 @@
                         </c:if>
 
                         <!-- Search -->
-                        <div class="mb-4">
-                            <ui:input id="searchInput" name="searchInput" placeholder="Tìm kiếm theo thuật ngữ, định nghĩa..." searchIcon="true" onInput="filterTable()" />
+                        <div class="mb-4 flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="whitespace-nowrap">Thuật ngữ: </span>
+                                <ui:input id="term" name="term" placeholder="Nhập thuật ngữ..." searchIcon="true" className="!w-70" value="${term}"/>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="whitespace-nowrap">Định nghĩa: </span>
+                                <ui:input id="definition" name="definition" placeholder="Nhập định nghĩa..." searchIcon="true" className="!w-70" value="${definition}"/>
+                            </div>
+                            <ui:button onclick="filter()">Tìm</ui:button>
                         </div>
 
                         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                             <ui:table>
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(0, 'text')">Thuật ngữ <span id="sort-arrow-0"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
-                                        <ui:th>Định nghĩa</ui:th>
+                                        <ui:th>
+                                            <span class="cursor-pointer select-none inline-flex items-center gap-1" onClick="sortTable('${(empty sort || sort.split('_')[0] != 'term') ? 'term_asc' : sort}')">Thuật ngữ
+                                                <span class="text-gray-400 text-xs">
+                                                    ${(empty sort || sort.split('_')[0] != 'term') ? '▲▼' : sort.split('_')[1] == 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            </span>
+                                        </ui:th>
+                                        <ui:th>
+                                            <span class="cursor-pointer select-none inline-flex items-center gap-1" onClick="sortTable('${(empty sort || sort.split('_')[0] != 'definition') ? 'definition_asc' : sort}')">Định nghĩa
+                                                <span class="text-gray-400 text-xs">
+                                                    ${(empty sort || sort.split('_')[0] != 'definition') ? '▲▼' : sort.split('_')[1] == 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            </span>
+                                        </ui:th>
                                         <ui:th>Ảnh thuật ngữ</ui:th>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(3, 'number')">Thứ tự <span id="sort-arrow-3"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                        <ui:th>Thứ tự</ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
                                     </tr>
                                 </thead>
@@ -142,40 +157,24 @@
                             location.href = '${pageContext.request.contextPath}/admin/flashcards/edit?id=' + id;
                         };
 
-                        // Search
-                        const searchCols = [0, 1]; // Thuật ngữ, Định nghĩa
-                        function filterTable() {
-                            const query = document.getElementById('searchInput').value.toLowerCase();
-                            const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
-                            rows.forEach(row => {
-                                const cells = row.querySelectorAll('td');
-                                const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
-                                row.style.display = match ? '' : 'none';
-                            });
-                        }
+                        const sortTable = (field) => {
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.searchParams.set('sort', field.split("_")[0]);
+                            url.searchParams.set('asc', field.split("_")[1] === "asc");
+                            location.href = url.toString();
+                        };
 
-                        // Sort
-                        let sortDir = {};
-                        function sortTable(colIdx, type) {
-                            const tbody = document.getElementById('tableBody');
-                            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
-                            const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
-                            sortDir[colIdx] = dir;
-
-                            rows.sort((a, b) => {
-                                const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                if (type === 'number') {
-                                    return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
-                                }
-                                return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
-                            });
-
-                            rows.forEach(row => tbody.appendChild(row));
-
-                            document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
-                            const arrow = document.getElementById('sort-arrow-' + colIdx);
-                            if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
-                        }
+                        const filter = () => {
+                            const term = document.getElementById("term").value;
+                            const definition = document.getElementById("definition").value;
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.search = '';
+                            url.searchParams.set('groupId', '${group.id}');
+                            url.searchParams.set('term', term);
+                            url.searchParams.set('definition', definition);
+                            location.href = url.toString();
+                        };
                     </script>
                 </layout:mainLayout>

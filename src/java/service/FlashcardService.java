@@ -6,26 +6,29 @@ import model.Flashcard;
 import repository.FlashcardRepository;
 
 public class FlashcardService {
+
     private final FlashcardRepository flashcardRepository = new FlashcardRepository();
     
-    public List<Flashcard> findAllByGroupId(UUID groupId) {
+    public List<Flashcard> find(UUID groupId, String term, String definition, String sortFieldName, boolean isAscending) {
+        if ((term != null && !term.isEmpty()) || (definition != null && !definition.isEmpty()) || sortFieldName != null) {
+            return flashcardRepository.filter(term, definition, sortFieldName, isAscending);
+        }
         return flashcardRepository.findAllByGroupId(groupId);
     }
-    
+
     public Flashcard findById(UUID id) {
         return flashcardRepository.findById(id);
     }
-    
+
     public boolean save(Flashcard flashcard) {
         return flashcardRepository.save(flashcard);
     }
-    
+
     public boolean update(Flashcard flashcard) {
         return flashcardRepository.update(flashcard);
     }
-    
+
     public boolean delete(UUID id) {
         return flashcardRepository.delete(id);
     }
-    
 }

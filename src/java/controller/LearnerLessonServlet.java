@@ -30,7 +30,7 @@ public class LearnerLessonServlet extends HttpServlet {
     private final LessonGroupService groupService = new LessonGroupService();
     private final LessonService lessonService = new LessonService();
     private final GrammarPointService grammarPointService = new GrammarPointService();
-    private final UserLessonProgressService progressService = new UserLessonProgressService();
+    private final LearnerLessonProgressService progressService = new LearnerLessonProgressService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

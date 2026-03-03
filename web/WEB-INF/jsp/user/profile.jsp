@@ -67,9 +67,7 @@
                                             <div>
                                                 <ui:label htmlFor="targetLevel" label="Mục tiêu JLPT" required="true"/>
                                                 <ui:select name="targetLevel" id="targetLevel" defaultValue="${currentUser.targetLevel}">
-                                                    <ui:selectTrigger
-                                                        placeholder="${not empty currentUser.targetLevel ? currentUser.targetLevel : 'Chọn cấp độ'}"
-                                                        className="w-full" />
+                                                    <ui:selectTrigger className="w-full" placeholder="${not empty currentUser.targetLevel ? currentUser.targetLevel : 'Chọn cấp độ'}"/>
                                                     <ui:selectContent>
                                                         <c:forEach items="${TargetLevel.values()}" var="i">
                                                             <ui:selectItem value="${i}">${i}</ui:selectItem>

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class UserFlashcardProgressRepository {
+public class LearnerFlashcardProgressRepository {
 
     private final Connection conn = DBConnect.getConnection();
 
@@ -28,7 +28,7 @@ public class UserFlashcardProgressRepository {
                 list.add(mapResultSetToProgress(rs));
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "findByUserAndGroup",
+            ExceptionLogger.logError(LearnerFlashcardProgressRepository.class.getName(), "findByUserAndGroup",
                     "Error finding progress by user and group: " + e.getMessage());
         }
         return list;
@@ -49,7 +49,7 @@ public class UserFlashcardProgressRepository {
                 list.add(mapResultSetToProgress(rs));
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "findFavoritesByUserAndGroup",
+            ExceptionLogger.logError(LearnerFlashcardProgressRepository.class.getName(), "findFavoritesByUserAndGroup",
                     "Error finding favorites by user and group: " + e.getMessage());
         }
         return list;
@@ -65,7 +65,7 @@ public class UserFlashcardProgressRepository {
                 return mapResultSetToProgress(rs);
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "findByUserAndFlashcard",
+            ExceptionLogger.logError(LearnerFlashcardProgressRepository.class.getName(), "findByUserAndFlashcard",
                     "Error finding progress by user and flashcard: " + e.getMessage());
         }
         return null;
@@ -87,7 +87,7 @@ public class UserFlashcardProgressRepository {
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "save",
+            ExceptionLogger.logError(LearnerFlashcardProgressRepository.class.getName(), "save",
                     "Error saving progress: " + e.getMessage());
         }
         return false;
@@ -110,7 +110,7 @@ public class UserFlashcardProgressRepository {
                 stmt.setString(2, flashcardId.toString());
                 return stmt.executeUpdate() > 0;
             } catch (SQLException e) {
-                ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "toggleFavorite",
+                ExceptionLogger.logError(LearnerFlashcardProgressRepository.class.getName(), "toggleFavorite",
                         "Error toggling favorite: " + e.getMessage());
             }
         }
@@ -141,7 +141,7 @@ public class UserFlashcardProgressRepository {
                 stmt.setString(3, flashcardId.toString());
                 return stmt.executeUpdate() > 0;
             } catch (SQLException e) {
-                ExceptionLogger.logError(UserFlashcardProgressRepository.class.getName(), "updateReviewStatus",
+                ExceptionLogger.logError(LearnerFlashcardProgressRepository.class.getName(), "updateReviewStatus",
                         "Error updating review status: " + e.getMessage());
             }
         }

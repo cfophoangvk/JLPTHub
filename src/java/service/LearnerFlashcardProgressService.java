@@ -3,10 +3,10 @@ package service;
 import java.util.List;
 import java.util.UUID;
 import model.UserFlashcardProgress;
-import repository.UserFlashcardProgressRepository;
+import repository.LearnerFlashcardProgressRepository;
 
-public class UserFlashcardProgressService {
-    private final UserFlashcardProgressRepository progressRepository = new UserFlashcardProgressRepository();
+public class LearnerFlashcardProgressService {
+    private final LearnerFlashcardProgressRepository progressRepository = new LearnerFlashcardProgressRepository();
     
     public List<UserFlashcardProgress> findByUserAndGroup(UUID userId, UUID groupId) {
         return progressRepository.findByUserAndGroup(userId, groupId);

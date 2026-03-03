@@ -40,7 +40,6 @@ public class AdminFlashcardGroupServlet extends HttpServlet {
             case "/admin/flashcard-groups/edit":
                 showEditForm(request, response);
                 break;
-
             case "/admin/flashcard-groups":
             default:
                 listGroups(request, response);
@@ -78,8 +77,19 @@ public class AdminFlashcardGroupServlet extends HttpServlet {
     }
 
     private void listGroups(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<FlashcardGroup> groups = groupService.findAll();
+        String name = request.getParameter("name");
+        String level = request.getParameter("level");
+        String sort = request.getParameter("sort");
+        boolean asc = false;
+        if (sort != null) {
+            asc = Boolean.parseBoolean(request.getParameter("asc"));
+        }
+        
+        List<FlashcardGroup> groups = groupService.find(name, level, sort, asc);
         request.setAttribute("groups", groups);
+        request.setAttribute("name", name);
+        request.setAttribute("level", level);
+        request.setAttribute("sort", sort + "_" + (asc ? "desc" : "asc"));
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/flashcard-group/list.jsp").forward(request, response);
     }
 

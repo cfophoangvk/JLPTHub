@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class UserTestResultRepository {
+public class LearnerTestResultRepository {
 
     private final Connection conn = DBConnect.getConnection();
 
@@ -34,7 +34,7 @@ public class UserTestResultRepository {
                 }
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestResultRepository.class.getName(), "save", "Error saving test result: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestResultRepository.class.getName(), "save", "Error saving test result: " + e.getMessage());
         }
         return 0;
     }
@@ -48,7 +48,7 @@ public class UserTestResultRepository {
                 return mapResultSetToUserTestResult(rs);
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestResultRepository.class.getName(), "findById", "Error finding result by ID: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestResultRepository.class.getName(), "findById", "Error finding result by ID: " + e.getMessage());
         }
         return null;
     }
@@ -63,7 +63,7 @@ public class UserTestResultRepository {
                 list.add(mapResultSetToUserTestResult(rs));
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestResultRepository.class.getName(), "findByUserId", "Error finding results by user ID: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestResultRepository.class.getName(), "findByUserId", "Error finding results by user ID: " + e.getMessage());
         }
         return list;
     }
@@ -79,7 +79,7 @@ public class UserTestResultRepository {
                 list.add(mapResultSetToUserTestResult(rs));
             }
         } catch (SQLException e) {
-            ExceptionLogger.logError(UserTestResultRepository.class.getName(), "findByUserAndTestId", "Error finding results: " + e.getMessage());
+            ExceptionLogger.logError(LearnerTestResultRepository.class.getName(), "findByUserAndTestId", "Error finding results: " + e.getMessage());
         }
         return list;
     }
