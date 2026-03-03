@@ -89,28 +89,24 @@ public class AdminTestServlet extends HttpServlet {
     }
 
     private void listTests(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String levelStr = request.getParameter("level");
-        List<Test> tests;
-        
-        if (levelStr != null && !levelStr.isEmpty()) {
-            try {
-                TargetLevel level = TargetLevel.valueOf(levelStr);
-                tests = testService.findAllByLevel(level);
-                request.setAttribute("selectedLevel", levelStr);
-            } catch (IllegalArgumentException e) {
-                tests = testService.findAll();
-            }
-        } else {
-            tests = testService.findAll();
+        String title = request.getParameter("title");
+        String level = request.getParameter("level");
+        String sort = request.getParameter("sort");
+        boolean asc = false;
+        if (sort != null) {
+            asc = Boolean.parseBoolean(request.getParameter("asc"));
         }
+        List<Test> tests = testService.find(title, level, sort, asc);
 
-        // Count sections for each test
         Map<Integer, Integer> sectionCounts = new HashMap<>();
         for (Test test : tests) {
             sectionCounts.put(test.getId(), testService.countSectionsByTestId(test.getId()));
         }
 
         request.setAttribute("tests", tests);
+        request.setAttribute("title", title);
+        request.setAttribute("level", level);
+        request.setAttribute("sort", sort + "_" + (asc ? "desc" : "asc"));
         request.setAttribute("sectionCounts", sectionCounts);
         request.setAttribute("levels", TargetLevel.values());
         request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/test/list.jsp").forward(request, response);

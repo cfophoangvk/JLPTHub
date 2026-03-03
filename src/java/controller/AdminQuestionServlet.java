@@ -16,7 +16,6 @@ import com.google.gson.Gson;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -119,9 +118,15 @@ public class AdminQuestionServlet extends HttpServlet {
             int sectionId = Integer.parseInt(sectionIdStr);
             TestSection section = sectionService.findById(sectionId);
             Test test = testService.findById(section.getTestId());
-            List<Question> questions = questionService.findAllBySectionId(sectionId);
+            
+            String content = request.getParameter("content");
+            String sort = request.getParameter("sort");
+            boolean asc = false;
+            if (sort != null) {
+                asc = Boolean.parseBoolean(request.getParameter("asc"));
+            }
+            List<Question> questions = questionService.find(sectionId, content, sort, asc);
 
-            // Count options for each question
             Map<Integer, Integer> optionCounts = new HashMap<>();
             for (Question question : questions) {
                 optionCounts.put(question.getId(), questionService.countOptionsByQuestionId(question.getId()));
@@ -129,6 +134,8 @@ public class AdminQuestionServlet extends HttpServlet {
 
             request.setAttribute("test", test);
             request.setAttribute("section", section);
+            request.setAttribute("content", content);
+            request.setAttribute("sort", sort + "_" + (asc ? "desc" : "asc"));
             request.setAttribute("questions", questions);
             request.setAttribute("optionCounts", optionCounts);
             request.getRequestDispatcher(BaseURL.BASE_VIEW_FOLDER + "/admin/question/list.jsp").forward(request, response);

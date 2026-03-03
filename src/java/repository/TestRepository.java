@@ -117,23 +117,39 @@ public class TestRepository {
         }
         return 0;
     }
-
-    public List<Test> sortBy(String fieldName, boolean isAscending) {
+    
+    public List<Test> filter(String title, String level, String sortFieldName, boolean isAscending) {
         List<Test> list = new ArrayList<>();
-        Set<String> ALLOWED_COLUMNS = new HashSet<>(Arrays.asList(
-                "Title", "Level"
+        Set<String> SORT_COLUMNS = new HashSet<>(Arrays.asList(
+                "title", "level", "createdAt"
         ));
-        if (!ALLOWED_COLUMNS.contains(fieldName)) {
+        if (sortFieldName != null && !SORT_COLUMNS.contains(sortFieldName)) {
             return list;
         }
-        String sql = "SELECT * FROM Test ORDER BY " + fieldName + " " + (isAscending ? "ASC" : "DESC");
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        List<String> parameters = new ArrayList<>();
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM Test WHERE Status = 1 ");
+        if (title != null && !title.isEmpty()) {
+            sqlBuilder.append("AND Title LIKE ? ");
+            parameters.add("%" + title + "%");
+        }
+        if (level != null && !level.isEmpty()) {
+            sqlBuilder.append("AND Level LIKE ? ");
+            parameters.add("%" + level + "%");
+        }
+        if (sortFieldName != null) {
+            sqlBuilder.append("ORDER BY ").append(sortFieldName).append(" ").append(isAscending ? "ASC" : "DESC");
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 list.add(mapResultSetToTest(rs));
             }
         } catch (Exception e) {
-            ExceptionLogger.logError(TestRepository.class.getName(), "sortBy", "Error sorting test: " + e.getMessage());
+            ExceptionLogger.logError(TestRepository.class.getName(), "filter", "Error filtering test: " + e.getMessage());
         }
         return list;
     }

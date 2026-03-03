@@ -124,22 +124,35 @@ public class QuestionRepository {
         return 0;
     }
 
-    public List<Question> sortBy(String fieldName, boolean isAscending) {
+    public List<Question> filter(int sectionId, String content, String sortFieldName, boolean isAscending) {
         List<Question> list = new ArrayList<>();
-        Set<String> ALLOWED_COLUMNS = new HashSet<>(Arrays.asList(
-                "Content"
+        Set<String> SORT_COLUMNS = new HashSet<>(Arrays.asList(
+                "content"
         ));
-        if (!ALLOWED_COLUMNS.contains(fieldName)) {
+        if (sortFieldName != null && !SORT_COLUMNS.contains(sortFieldName)) {
             return list;
         }
-        String sql = "SELECT * FROM Question ORDER BY " + fieldName + " " + (isAscending ? "ASC" : "DESC");
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        List<String> parameters = new ArrayList<>();
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM Question WHERE SectionId = ? ");
+        if (content != null && !content.isEmpty()) {
+            sqlBuilder.append("AND Content LIKE ? ");
+            parameters.add("%" + content + "%");
+        }
+        if (sortFieldName != null) {
+            sqlBuilder.append("ORDER BY ").append(sortFieldName).append(" ").append(isAscending ? "ASC" : "DESC");
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
+            stmt.setInt(1, sectionId);
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 2, parameters.get(i));
+            }
+
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 list.add(mapResultSetToQuestion(rs));
             }
         } catch (Exception e) {
-            ExceptionLogger.logError(QuestionRepository.class.getName(), "sortBy", "Error sorting question: " + e.getMessage());
+            ExceptionLogger.logError(QuestionRepository.class.getName(), "filter", "Error filtering questions: " + e.getMessage());
         }
         return list;
     }

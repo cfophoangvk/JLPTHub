@@ -31,8 +31,11 @@ public class TestService {
     private final LearnerTestResultRepository userTestResultRepository = new LearnerTestResultRepository();
     private final LearnerTestAnswerRepository userTestAnswerRepository = new LearnerTestAnswerRepository();
     private final LearnerTestSectionResultRepository userTestSectionResultRepository = new LearnerTestSectionResultRepository();
-
-    public List<Test> findAll() {
+    
+    public List<Test> find(String title, String level, String sortFieldName, boolean isAscending) {
+        if ((title != null && !title.isEmpty()) || (level != null && !level.isEmpty()) || sortFieldName != null) {
+            return testRepository.filter(title, level, sortFieldName, isAscending);
+        }
         return testRepository.findAll();
     }
 
@@ -58,10 +61,6 @@ public class TestService {
 
     public int countSectionsByTestId(int testId) {
         return testRepository.countSectionsByTestId(testId);
-    }
-
-    public List<Test> sortBy(String fieldName, boolean isAscending) {
-        return testRepository.sortBy(fieldName, isAscending);
     }
 
     public List<Test> findTestsForUser(TargetLevel userLevel) {
@@ -181,7 +180,7 @@ public class TestService {
 
         return result;
     }
-    
+
     public UserTestResult findResultById(int resultId) {
         return userTestResultRepository.findById(resultId);
     }

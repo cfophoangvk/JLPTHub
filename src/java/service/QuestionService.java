@@ -12,6 +12,13 @@ public class QuestionService {
 
     private final QuestionRepository questionRepository = new QuestionRepository();
     private final QuestionOptionRepository optionRepository = new QuestionOptionRepository();
+    
+    public List<Question> find(int sectionId, String content, String sortFieldName, boolean isAscending) {
+        if ((content != null && !content.isEmpty()) || sortFieldName != null) {
+            return questionRepository.filter(sectionId, content, sortFieldName, isAscending);
+        }
+        return questionRepository.findAllBySectionId(sectionId);
+    }
 
     public List<Question> findAllBySectionId(int sectionId) {
         return questionRepository.findAllBySectionId(sectionId);
@@ -47,9 +54,5 @@ public class QuestionService {
 
     public int countOptionsByQuestionId(int questionId) {
         return questionRepository.countOptionsByQuestionId(questionId);
-    }
-
-    public List<Question> sortBy(String fieldName, boolean isAscending) {
-        return questionRepository.sortBy(fieldName, isAscending);
     }
 }

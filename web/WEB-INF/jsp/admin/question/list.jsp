@@ -2,7 +2,6 @@
     <%@ taglib prefix="ui" tagdir="/WEB-INF/tags/ui" %>
         <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
             <%@taglib prefix="layout" tagdir="/WEB-INF/tags/layout" %>
-
                 <layout:mainLayout>
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                         <nav class="flex mb-4" aria-label="Breadcrumb">
@@ -44,9 +43,7 @@
                             <div>
                                 <h1 class="text-2xl font-bold text-gray-900">Câu hỏi: ${section.sectionType}</h1>
                                 <p class="text-sm text-gray-500 mt-1">
-                                    Bài test: <span class="font-medium">${test.title}</span> -
-                                    <span
-                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">${test.level}</span>
+                                    Bài test: <span class="font-medium">${test.title}</span> - <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">${test.level}</span>
                                 </p>
                             </div>
                             <ui:button
@@ -65,8 +62,7 @@
                                 <span class="block sm:inline">
                                     <c:choose>
                                         <c:when test="${param.success == 'created'}">Tạo câu hỏi thành công!</c:when>
-                                        <c:when test="${param.success == 'updated'}">Cập nhật câu hỏi thành công!
-                                        </c:when>
+                                        <c:when test="${param.success == 'updated'}">Cập nhật câu hỏi thành công!</c:when>
                                         <c:when test="${param.success == 'deleted'}">Xóa câu hỏi thành công!</c:when>
                                         <c:otherwise>Thành công!</c:otherwise>
                                     </c:choose>
@@ -81,8 +77,12 @@
                             </div>
                         </c:if>
 
-                        <div class="mb-4">
-                            <ui:input id="searchInput" name="searchInput" placeholder="Tìm kiếm theo nội dung..." searchIcon="true" onInput="filterTable()" />
+                        <div class="mb-4 flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="whitespace-nowrap">Tìm kiếm theo nội dung:</span>
+                                <ui:input id="content" name="content" placeholder="Nội dung..." searchIcon="true" className="!w-70" value="${content}"/>
+                            </div>
+                            <ui:button onclick="filter()">Tìm</ui:button>
                         </div>
 
                         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -90,13 +90,16 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <ui:th>ID</ui:th>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(1, 'text')">Nội dung <span id="sort-arrow-1"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                        <ui:th>
+                                            <span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                                onclick="sortTable('${(empty sort || sort.split('_')[0] != 'content') ? 'content_asc' : sort}')">Nội dung
+                                                <span class="text-gray-400 text-xs">
+                                                    ${(empty sort || sort.split('_')[0] != 'content') ? '▲▼' : sort.split('_')[1] == 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            </span>
+                                        </ui:th>
                                         <ui:th>Hình ảnh</ui:th>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(3, 'number')">Số lựa chọn <span id="sort-arrow-3"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                        <ui:th>Số lựa chọn</ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
                                     </tr>
                                 </thead>
@@ -312,41 +315,23 @@
                                     container.classList.remove("hidden");
                                 });
                         };
+                        
+                        const sortTable = (field) => {
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.searchParams.set('sort', field.split("_")[0]);
+                            url.searchParams.set('asc', field.split("_")[1] === "asc");
+                            location.href = url.toString();
+                        };
 
-                        // Search
-                        const searchCols = [1]; // Nội dung
-                        function filterTable() {
-                            const query = document.getElementById('searchInput').value.toLowerCase();
-                            const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
-                            rows.forEach(row => {
-                                const cells = row.querySelectorAll('td');
-                                const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
-                                row.style.display = match ? '' : 'none';
-                            });
-                        }
-
-                        // Sort
-                        let sortDir = {};
-                        function sortTable(colIdx, type) {
-                            const tbody = document.getElementById('tableBody');
-                            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
-                            const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
-                            sortDir[colIdx] = dir;
-
-                            rows.sort((a, b) => {
-                                const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                if (type === 'number') {
-                                    return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
-                                }
-                                return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
-                            });
-
-                            rows.forEach(row => tbody.appendChild(row));
-
-                            document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
-                            const arrow = document.getElementById('sort-arrow-' + colIdx);
-                            if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
-                        }
+                        const filter = () => {
+                            const content = document.getElementById("content").value;
+                            const urlString = location.href;
+                            const url = new URL(urlString);
+                            url.search = '';
+                            url.searchParams.set('sectionId', '${section.id}');
+                            url.searchParams.set('content', content);
+                            location.href = url.toString();
+                        };
                     </script>
                 </layout:mainLayout>

@@ -71,19 +71,10 @@
                             <ui:table>
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(0, 'text')">Loại phần thi <span id="sort-arrow-0"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(1, 'number')">Thời gian (phút) <span
-                                                    id="sort-arrow-1" class="text-gray-400 text-xs">▲▼</span></span>
-                                        </ui:th>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(2, 'number')">Điểm đạt <span id="sort-arrow-2"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
-                                        <ui:th><span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                                onclick="sortTable(3, 'number')">Tổng điểm <span id="sort-arrow-3"
-                                                    class="text-gray-400 text-xs">▲▼</span></span></ui:th>
+                                        <ui:th>Loại phần thi</ui:th>
+                                        <ui:th>Thời gian (phút)</ui:th>
+                                        <ui:th>Điểm đạt</ui:th>
+                                        <ui:th>Tổng điểm</ui:th>
                                         <ui:th>Audio</ui:th>
                                         <ui:th>Số câu hỏi</ui:th>
                                         <ui:th className="!text-center">Hành động</ui:th>
@@ -192,41 +183,5 @@
                             document.getElementById('deleteSectionId').value = id;
                             openDialog('alert-section');
                         };
-
-                        // Search
-                        const searchCols = [0]; // Loại phần thi
-                        function filterTable() {
-                            const query = document.getElementById('searchInput').value.toLowerCase();
-                            const rows = document.querySelectorAll('#tableBody tr:not(.empty-row)');
-                            rows.forEach(row => {
-                                const cells = row.querySelectorAll('td');
-                                const match = searchCols.some(i => cells[i] && cells[i].textContent.toLowerCase().includes(query));
-                                row.style.display = match ? '' : 'none';
-                            });
-                        }
-
-                        // Sort
-                        let sortDir = {};
-                        function sortTable(colIdx, type) {
-                            const tbody = document.getElementById('tableBody');
-                            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
-                            const dir = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
-                            sortDir[colIdx] = dir;
-
-                            rows.sort((a, b) => {
-                                const aText = a.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                const bText = b.querySelectorAll('td')[colIdx]?.textContent.trim() || '';
-                                if (type === 'number') {
-                                    return dir === 'asc' ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
-                                }
-                                return dir === 'asc' ? aText.localeCompare(bText, 'vi') : bText.localeCompare(aText, 'vi');
-                            });
-
-                            rows.forEach(row => tbody.appendChild(row));
-
-                            document.querySelectorAll('[id^="sort-arrow-"]').forEach(el => el.textContent = '▲▼');
-                            const arrow = document.getElementById('sort-arrow-' + colIdx);
-                            if (arrow) arrow.textContent = dir === 'asc' ? '▲' : '▼';
-                        }
                     </script>
                 </layout:mainLayout>
