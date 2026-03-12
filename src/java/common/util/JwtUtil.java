@@ -1,6 +1,5 @@
 package common.util;
 
-import common.constant.BaseURL;
 import common.constant.Configuration;
 import common.logger.ExceptionLogger;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -23,9 +22,7 @@ public class JwtUtil {
     private static final SecretKey SECRET_KEY;
     
     static {
-        Dotenv dotenv = Dotenv.configure()
-                .directory(BaseURL.ENV_DIRECTORY)
-                .load();
+        Dotenv dotenv = Dotenv.load();
         String secretKeyString = dotenv.get("JWT_SECRET_KEY");
         if (secretKeyString == null || secretKeyString.length() < 32) {
             throw new RuntimeException("JWT_SECRET_KEY must be at least 32 characters");

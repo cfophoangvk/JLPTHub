@@ -1,6 +1,5 @@
 package common.util;
 
-import common.constant.BaseURL;
 import common.logger.ExceptionLogger;
 import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.mail.*;
@@ -17,9 +16,7 @@ public class EmailUtil {
     private static final String APP_BASE_URL;
     
     static {
-        Dotenv dotenv = Dotenv.configure()
-                .directory(BaseURL.ENV_DIRECTORY)
-                .load();
+        Dotenv dotenv = Dotenv.load();
         SMTP_HOST = dotenv.get("SMTP_HOST", "smtp.gmail.com");
         SMTP_PORT = Integer.parseInt(dotenv.get("SMTP_PORT", "587"));
         SMTP_USERNAME = dotenv.get("SMTP_USERNAME");

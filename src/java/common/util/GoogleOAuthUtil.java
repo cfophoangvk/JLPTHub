@@ -2,7 +2,6 @@ package common.util;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import common.constant.BaseURL;
 import common.logger.ExceptionLogger;
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -27,9 +26,7 @@ public class GoogleOAuthUtil {
     private static final Gson gson = new Gson();
 
     static {
-        Dotenv dotenv = Dotenv.configure()
-                .directory(BaseURL.ENV_DIRECTORY)
-                .load();
+        Dotenv dotenv = Dotenv.load();
         GOOGLE_CLIENT_ID = dotenv.get("GOOGLE_CLIENT_ID");
         GOOGLE_CLIENT_SECRET = dotenv.get("GOOGLE_CLIENT_SECRET");
         GOOGLE_REDIRECT_URI = dotenv.get("GOOGLE_REDIRECT_URI");

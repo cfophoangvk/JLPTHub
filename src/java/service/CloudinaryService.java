@@ -2,7 +2,6 @@ package service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import common.constant.BaseURL;
 import common.constant.Configuration;
 import common.logger.ExceptionLogger;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -21,9 +20,7 @@ public class CloudinaryService {
 
     static {
         try {
-            Dotenv dotenv = Dotenv.configure()
-                    .directory(BaseURL.ENV_DIRECTORY)
-                    .load();
+            Dotenv dotenv = Dotenv.load();
             String cloudName = dotenv.get("CLOUDINARY_CLOUD_NAME");
             String apiKey = dotenv.get("CLOUDINARY_API_KEY");
             String apiSecret = dotenv.get("CLOUDINARY_API_SECRET");
