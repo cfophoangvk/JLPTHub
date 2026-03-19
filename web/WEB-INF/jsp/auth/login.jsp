@@ -223,7 +223,7 @@
                                 isValid &= validateInput("registerEmail", emailValidation);
                                 isValid &= validateInput("registerPassword", passwordRegisterValidation);
                                 isValid &= validateInput("registerFullName", fullNameValidation);
-                                isValid &= validateInput("targetLevel", targetLevelValidation);
+                                isValid &= validateSelect("targetLevel", targetLevelValidation);
 
                                 if (isValid) {
                                     submitForm("registerForm");

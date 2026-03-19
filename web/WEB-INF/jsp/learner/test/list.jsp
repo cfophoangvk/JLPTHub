@@ -96,7 +96,7 @@
                                         ${test.title}
                                     </h3>
                                     
-                                    <ui:button onclick="openDialog('start-test-dialog')" className="w-full">
+                                    <ui:button onclick="openDialog('start-test-dialog');setDialogTestId(${test.id})" className="w-full">
                                         <i class="fa-solid fa-play mr-2"></i>
                                         <span class="text-base">Bắt đầu làm bài</span>
                                     </ui:button>
@@ -121,14 +121,21 @@
         </ui:alertDialogHeader>
         <ui:alertDialogFooter>
             <ui:alertDialogCancel>Không</ui:alertDialogCancel>
-            <ui:alertDialogAction onclick="location.href='${pageContext.request.contextPath}/test/take?testId=${test.id}'">
+            <ui:alertDialogAction onclick="startTest()">
                 Có
             </ui:alertDialogAction>
         </ui:alertDialogFooter>
     </ui:alertDialog>
     <script>
+        let testId = '';
         function onLevelChange(value) {
             document.getElementById('levelForm').submit();
+        }
+        function setDialogTestId(id) {
+            testId = id;
+        }
+        function startTest() {
+            location.href='${pageContext.request.contextPath}/test/take?testId=' + testId;
         }
     </script>
 </layout:mainLayout>
